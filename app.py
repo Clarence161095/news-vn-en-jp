@@ -232,9 +232,6 @@ except Exception as e:
 # In-memory cache for Katakana translations
 _katakana_translation_cache = {}
 
-# In-memory cache for processed articles
-_article_cache = {}
-
 def translate_katakana_to_english(katakana_text):
     """
     Dịch Katakana sang tiếng Anh với multi-tier caching
@@ -296,6 +293,19 @@ def init_db():
             category TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Article cache table - Lưu processed content (IPA + Furigana) vào DB thay vì RAM
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS article_cache (
+            article_id INTEGER PRIMARY KEY,
+            title_en_ipa TEXT,
+            title_jp_furigana TEXT,
+            content_en_ipa TEXT,
+            content_jp_furigana TEXT,
+            cached_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
         )
     ''')
     
@@ -405,44 +415,85 @@ def process_article_content(article):
     """
     Xử lý bài viết: tạo IPA và Furigana tự động từ nội dung gốc
     Bao gồm cả TITLE và CONTENT
-    Sử dụng cache để tăng tốc độ
+    Sử dụng DB cache để giảm RAM usage (thay vì in-memory cache)
     """
-    article_id = article.get('id')
+    # Convert sqlite3.Row to dict first
+    article_dict = dict(article)
+    article_id = article_dict.get('id')
     
-    # Check cache first
-    if article_id and article_id in _article_cache:
-        return _article_cache[article_id]
+    if not article_id:
+        # Nếu không có ID, process trực tiếp không cache
+        processed = dict(article_dict)
+        processed['title_en_ipa'] = generate_ipa_html(article_dict.get('title_en', ''))
+        processed['title_jp_furigana'] = generate_furigana_html(article_dict.get('title_jp', ''))
+        processed['content_en_ipa'] = generate_ipa_html(article_dict.get('content_en', ''))
+        processed['content_jp_furigana'] = generate_furigana_html(article_dict.get('content_jp', ''))
+        return processed
     
-    processed = dict(article)
+    # Check DB cache first
+    conn = get_db()
+    cache_row = conn.execute(
+        'SELECT title_en_ipa, title_jp_furigana, content_en_ipa, content_jp_furigana FROM article_cache WHERE article_id = ?',
+        (article_id,)
+    ).fetchone()
+    
+    if cache_row:
+        # Cache hit - Lấy từ DB
+        conn.close()
+        processed = dict(article_dict)
+        processed['title_en_ipa'] = cache_row['title_en_ipa']
+        processed['title_jp_furigana'] = cache_row['title_jp_furigana']
+        processed['content_en_ipa'] = cache_row['content_en_ipa']
+        processed['content_jp_furigana'] = cache_row['content_jp_furigana']
+        return processed
+    
+    # Cache miss - Generate IPA và Furigana
+    processed = dict(article_dict)
     
     # Tạo IPA cho tiêu đề tiếng Anh
-    if article['title_en']:
-        processed['title_en_ipa'] = generate_ipa_html(article['title_en'])
+    if article_dict.get('title_en'):
+        processed['title_en_ipa'] = generate_ipa_html(article_dict['title_en'])
     else:
         processed['title_en_ipa'] = ''
     
     # Tạo Furigana cho tiêu đề tiếng Nhật
-    if article['title_jp']:
-        processed['title_jp_furigana'] = generate_furigana_html(article['title_jp'])
+    if article_dict.get('title_jp'):
+        processed['title_jp_furigana'] = generate_furigana_html(article_dict['title_jp'])
     else:
         processed['title_jp_furigana'] = ''
     
     # Tạo IPA cho nội dung tiếng Anh
-    if article['content_en']:
-        processed['content_en_ipa'] = generate_ipa_html(article['content_en'])
+    if article_dict.get('content_en'):
+        processed['content_en_ipa'] = generate_ipa_html(article_dict['content_en'])
     else:
         processed['content_en_ipa'] = ''
     
     # Tạo Furigana cho nội dung tiếng Nhật
-    if article['content_jp']:
-        processed['content_jp_furigana'] = generate_furigana_html(article['content_jp'])
+    if article_dict.get('content_jp'):
+        processed['content_jp_furigana'] = generate_furigana_html(article_dict['content_jp'])
     else:
         processed['content_jp_furigana'] = ''
     
-    # Cache the processed article for future requests
-    if article_id:
-        _article_cache[article_id] = processed
+    # Lưu vào DB cache để dùng lần sau
+    try:
+        conn.execute('''
+            INSERT INTO article_cache (article_id, title_en_ipa, title_jp_furigana, content_en_ipa, content_jp_furigana)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (
+            article_id,
+            processed['title_en_ipa'],
+            processed['title_jp_furigana'],
+            processed['content_en_ipa'],
+            processed['content_jp_furigana']
+        ))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        # Cache đã tồn tại, skip
+        pass
+    finally:
+        conn.close()
     
+    return processed
     return processed
 
 # ==================== ROUTES ====================
@@ -474,10 +525,7 @@ def article_detail(article_id):
 # Delete Article
 @app.route('/article/delete/<int:article_id>', methods=['POST'])
 def delete_article(article_id):
-    # Clear cache for this article
-    if article_id in _article_cache:
-        del _article_cache[article_id]
-    
+    # Cache will be auto-deleted via CASCADE constraint
     conn = get_db()
     conn.execute('DELETE FROM articles WHERE id = ?', (article_id,))
     conn.commit()
@@ -519,8 +567,7 @@ def import_articles():
             conn.commit()
             conn.close()
             
-            # Clear article cache after import to ensure fresh data
-            _article_cache.clear()
+            # DB cache will be auto-populated on first view
             
             flash(f'Đã import thành công {imported_count} bài viết! IPA và Furigana sẽ được tạo tự động khi xem bài.', 'success')
             return redirect(url_for('index'))
