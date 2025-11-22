@@ -24,12 +24,8 @@
 {
     "title_vi": "Tiêu đề tiếng Việt",
     "title_en": "English Title",
-    "title_jp": "日本語のタイトル",
     "content_vi": "Nội dung tiếng Việt...",
     "content_en": "English content...",
-    "content_jp": "日本語の内容...",
-    "content_en_ipa": "English with <ruby>pronunciation<rt>/prəˌnʌnsiˈeɪʃn/</rt></ruby>",
-    "content_jp_furigana": "<ruby>日本語<rt>にほんご</rt></ruby>",
     "category": "news"
 }
 
@@ -56,23 +52,21 @@ Hoặc import nhiều bài viết:
         <ul style="line-height: 2;">
             <li><strong>title_vi:</strong> Tiêu đề tiếng Việt</li>
             <li><strong>title_en:</strong> Tiêu đề tiếng Anh</li>
-            <li><strong>title_jp:</strong> Tiêu đề tiếng Nhật</li>
             <li><strong>content_vi:</strong> Nội dung tiếng Việt (có thể chứa HTML)</li>
             <li><strong>content_en:</strong> Nội dung tiếng Anh</li>
-            <li><strong>content_jp:</strong> Nội dung tiếng Nhật</li>
-            <li><strong>content_en_ipa:</strong> Nội dung tiếng Anh kèm IPA (dùng thẻ &lt;ruby&gt;)</li>
-            <li><strong>content_jp_furigana:</strong> Nội dung tiếng Nhật kèm Furigana (dùng thẻ &lt;ruby&gt;)</li>
             <li><strong>category:</strong> Danh mục (news, book, article, v.v.)</li>
         </ul>
         
-        <h4 style="color: #2c3e50; margin-top: 20px; margin-bottom: 10px;">Ví dụ sử dụng Ruby tag:</h4>
-        <pre style="background-color: #fff; padding: 15px; border-radius: 5px; overflow-x: auto;">
-English IPA:
-&lt;ruby&gt;hello&lt;rt&gt;/həˈloʊ/&lt;/rt&gt;&lt;/ruby&gt; &lt;ruby&gt;world&lt;rt&gt;/wɜːrld/&lt;/rt&gt;&lt;/ruby&gt;
-
-Japanese Furigana:
-&lt;ruby&gt;日本語&lt;rt&gt;にほんご&lt;/rt&gt;&lt;/ruby&gt;を&lt;ruby&gt;勉強&lt;rt&gt;べんきょう&lt;/rt&gt;&lt;/ruby&gt;します。
-        </pre>
+        <h4 style="color: #2c3e50; margin-top: 20px; margin-bottom: 10px;">💡 IPA tự động:</h4>
+        <p style="line-height: 1.8;">
+            IPA (International Phonetic Alphabet) sẽ được tự động tạo cho nội dung tiếng Anh khi bạn xem bài viết.
+            Không cần thêm thủ công vào JSON.
+        </p>
+        
+        <h4 style="color: #2c3e50; margin-top: 20px; margin-bottom: 10px;">📚 Trạng thái thư viện:</h4>
+        <ul style="line-height: 2;">
+            <li><strong>IPA (eng-to-ipa):</strong> {{ lib_status.ipa }}</li>
+        </ul>
     </div>
 </div>
 {% endblock %}
