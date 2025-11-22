@@ -5,7 +5,7 @@ Web app đọc báo, đọc sách, đọc nội dung Song Ngữ (Việt - Anh - 
 ## ✨ Tính năng
 
 ### 🎯 Core Features
-- ✅ **7 chế độ đọc**: Tiếng Việt, English (IPA), 日本語 (Furigana), Việt-Anh, Việt-Nhật, Anh-Nhật, Ba Ngữ
+- ✅ **7 chế độ đọc**: Tiếng Việt, English (IPA), 日本語 (Furigana), Việt-Anh, Việt-Nhật, Anh-Nhật, Tam Ngữ
 - ✅ **Tự động tạo IPA**: Chuyển đổi tiếng Anh sang phiên âm IPA tự động
 - ✅ **Tự động tạo Furigana**: Chuyển đổi Kanji sang Hiragana tự động
 - ✅ **Toggle Furigana**: Bật/tắt furigana toàn bộ hoặc từng từ
@@ -94,7 +94,7 @@ Trang chủ hiển thị 7 nút cho mỗi bài viết:
 - 🇻🇳🇬🇧 **Việt-Anh** - Song ngữ Việt-Anh
 - 🇻🇳🇯🇵 **Việt-Nhật** - Song ngữ Việt-Nhật
 - 🇬🇧🇯🇵 **Anh-Nhật** - Song ngữ Anh-Nhật
-- 🌐 **Ba Ngữ** - Hiển thị cả 3 ngôn ngữ
+- 🌐 **Tam Ngữ** - Hiển thị cả 3 ngôn ngữ
 
 ### Toggle Furigana
 

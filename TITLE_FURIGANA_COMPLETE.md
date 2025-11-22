@@ -130,7 +130,7 @@ Furigana:
 4. ✅ **Việt-Anh** - Both titles, size 1.5em (English with IPA)
 5. ✅ **Việt-Nhật** - Both titles, size 1.5em (Japanese with Furigana)
 6. ✅ **Anh-Nhật** - Both titles, size 1.5em (Both with IPA/Furigana)
-7. ✅ **Ba Ngữ** - All 3 titles, size 1.5em (EN: IPA, JP: Furigana)
+7. ✅ **Tam Ngữ** - All 3 titles, size 1.5em (EN: IPA, JP: Furigana)
 
 ## Testing
 

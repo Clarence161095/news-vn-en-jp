@@ -41,7 +41,7 @@
 4. 🇻🇳🇬🇧 Việt - Anh (IPA)
 5. 🇻🇳🇯🇵 Việt - Nhật (Furigana) - **Có toggle**
 6. 🇬🇧🇯🇵 Anh - Nhật (IPA + Furigana) - **Có toggle**
-7. 🌐 Ba Ngữ (IPA + Furigana) - **Có toggle**
+7. 🌐 Tam Ngữ (IPA + Furigana) - **Có toggle**
 
 ### 💡 Mẹo sử dụng:
 - **Người mới học**: Bật furigana ON để đọc dễ dàng
