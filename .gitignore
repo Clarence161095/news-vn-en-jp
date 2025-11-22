@@ -1,7 +1,46 @@
-*.db
+# Python
 *.pyc
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
 venv/
+env/
+ENV/
+Lib/
+Scripts/
+share/
+pyvenv.cfg
+
+# Flask
+instance/
+.webassets-cache
+*.db
+
+# Environment variables
 .env
+.env.local
+
+# IDE
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
 *.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*_old.*
+*_backup.*
