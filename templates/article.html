@@ -1,0 +1,479 @@
+{% extends "base.html" %}
+
+{% block title %}{{ article['title_vi'] or article['title_en'] }} - Đọc Báo{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Furigana Toggle Button */
+    .furigana-toggle-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        backg        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+            <div class="lang-column">
+                <h3>🇻🇳 Tiếng Việt</h3>
+                <div class="article-content">
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">{{ article['title_vi'] }}</h4>
+                    {{ article['content_vi']|safe }}
+                </div>
+            </div>
+            <div class="lang-column">
+                <h3>🇬🇧 English (IPA)</h3>
+                <div class="article-content">
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">
+                        {% if article['title_en_ipa'] %}
+                            {{ article['title_en_ipa']|safe }}
+                        {% else %}
+                            {{ article['title_en'] }}
+                        {% endif %}
+                    </h4>ient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .furigana-toggle-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    
+    .furigana-toggle-btn:active {
+        transform: scale(0.95);
+    }
+    
+    .furigana-toggle-btn.off {
+        background: linear-gradient(135deg, #8e9eab 0%, #6c7a89 100%);
+    }
+    
+    /* Tooltip */
+    .furigana-toggle-btn::before {
+        content: attr(data-tooltip);
+        position: absolute;
+        right: 70px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        white-space: nowrap;
+        font-size: 14px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+    }
+    
+    .furigana-toggle-btn:hover::before {
+        opacity: 1;
+    }
+    
+    /* Ruby styling - RESET ALL */
+    ruby {
+        cursor: pointer;
+        position: relative;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0 3px;
+        padding: 0;
+        line-height: 1;
+        vertical-align: baseline;
+        transition: all 0.2s ease;
+    }
+    
+    ruby:hover {
+        background-color: rgba(102, 126, 234, 0.1);
+        border-radius: 3px;
+    }
+    
+    /* Hide furigana when toggle is off */
+    ruby.furigana-hidden rt {
+        display: none !important;
+    }
+    
+    /* Ruby base text */
+    ruby rb,
+    ruby > *:not(rt) {
+        display: inline;
+    }
+    
+    /* Show furigana - ABSOLUTE CENTERING */
+    ruby.show-rt {
+        background-color: rgba(102, 126, 234, 0.05);
+        border-radius: 3px;
+    }
+    
+    ruby.show-rt rt {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: -3em;
+        left: 50%;
+        transform: translateX(-50%);
+        
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 0.65em;
+        font-weight: 600;
+        white-space: nowrap;
+        z-index: 1000;
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.6);
+        animation: popIn 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        
+        min-width: 50px;
+        text-align: center;
+    }
+    
+    /* Animation for furigana popup */
+    @keyframes popIn {
+        0% {
+            opacity: 0;
+            transform: translateX(-50%) translateY(8px) scale(0.85);
+        }
+        60% {
+            transform: translateX(-50%) translateY(-2px) scale(1.05);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0) scale(1);
+        }
+    }
+    
+    /* Arrow pointer - PERFECTLY CENTERED */
+    ruby.show-rt rt::before {
+        content: '';
+        position: absolute;
+        bottom: -6px;
+        left: 50%;
+        margin-left: -6px;
+        width: 0;
+        height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid #764ba2;
+    }
+    
+    /* Content spacing to avoid overlap */
+    .article-content {
+        padding-top: 2em;
+        line-height: 3;
+    }
+    
+    .article-content p {
+        margin-bottom: 1.5em;
+        line-height: 3;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+    <a href="{{ url_for('index') }}" style="color: #3498db; text-decoration: none;">← Quay lại danh sách</a>
+    
+    <!-- Nút xóa -->
+    <form action="{{ url_for('delete_article', article_id=article['id']) }}" method="POST" 
+          onsubmit="return confirm('Bạn có chắc muốn xóa bài viết này?');" style="display: inline-block;">
+        <button type="submit" 
+                style="padding: 8px 16px; background-color: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em;">
+            🗑️ Xóa bài viết
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <h2 style="color: #2c3e50; margin-bottom: 20px;">
+        {{ article['title_vi'] or article['title_en'] or article['title_jp'] }}
+    </h2>
+    
+    <!-- Language Selector -->
+    <div class="lang-selector" style="flex-wrap: wrap;">
+        <button class="lang-btn {% if lang == 'vi' %}active{% endif %}" onclick="switchLang('vi')">
+            🇻🇳 Tiếng Việt
+        </button>
+        <button class="lang-btn {% if lang == 'en' %}active{% endif %}" onclick="switchLang('en')">
+            🇬🇧 English (IPA)
+        </button>
+        <button class="lang-btn {% if lang == 'jp' %}active{% endif %}" onclick="switchLang('jp')">
+            🇯🇵 日本語 (Furigana)
+        </button>
+        <button class="lang-btn {% if lang == 'vi-en' %}active{% endif %}" onclick="switchLang('vi-en')">
+            🇻🇳🇬🇧 Việt - Anh
+        </button>
+        <button class="lang-btn {% if lang == 'vi-jp' %}active{% endif %}" onclick="switchLang('vi-jp')">
+            🇻🇳🇯🇵 Việt - Nhật
+        </button>
+        <button class="lang-btn {% if lang == 'en-jp' %}active{% endif %}" onclick="switchLang('en-jp')">
+            🇬🇧🇯🇵 Anh - Nhật
+        </button>
+        <button class="lang-btn {% if lang == 'all' %}active{% endif %}" onclick="switchLang('all')">
+            🌐 Tam Ngữ
+        </button>
+    </div>
+    
+    <!-- Vietnamese Content -->
+    <div id="content-vi" class="content-section {% if lang == 'vi' %}active{% endif %}">
+        <div class="article-content">
+            <h3 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.8em;">{{ article['title_vi'] }}</h3>
+            <div>{{ article['content_vi']|safe }}</div>
+        </div>
+    </div>
+    
+    <!-- English Content with IPA -->
+    <div id="content-en" class="content-section {% if lang == 'en' %}active{% endif %}">
+        <div class="article-content">
+            <h3 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.8em;">
+                {% if article['title_en_ipa'] %}
+                    {{ article['title_en_ipa']|safe }}
+                {% else %}
+                    {{ article['title_en'] }}
+                {% endif %}
+            </h3>
+            <div>
+                {% if article['content_en_ipa'] %}
+                    {{ article['content_en_ipa']|safe }}
+                {% else %}
+                    {{ article['content_en']|safe }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Japanese Content with Furigana -->
+    <div id="content-jp" class="content-section {% if lang == 'jp' %}active{% endif %}">
+        <div class="article-content">
+            <h3 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.8em;">
+                {% if article['title_jp_furigana'] %}
+                    {{ article['title_jp_furigana']|safe }}
+                {% else %}
+                    {{ article['title_jp'] }}
+                {% endif %}
+            </h3>
+            <div>
+                {% if article['content_jp_furigana'] %}
+                    {{ article['content_jp_furigana']|safe }}
+                {% else %}
+                    {{ article['content_jp']|safe }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bilingual Content (Vietnamese - English) -->
+    <div id="content-vi-en" class="content-section {% if lang == 'vi-en' %}active{% endif %}">
+        <div class="bilingual-container">
+            <div class="lang-column">
+                <h3>🇻🇳 Tiếng Việt</h3>
+                <div class="article-content">
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">{{ article['title_vi'] }}</h4>
+                    {{ article['content_vi']|safe }}
+                </div>
+            </div>
+            <div class="lang-column">
+                <h3>🇬🇧 English (IPA)</h3>
+                <div class="article-content">
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">
+                        {% if article['title_en_ipa'] %}
+                            {{ article['title_en_ipa']|safe }}
+                        {% else %}
+                            {{ article['title_en'] }}
+                        {% endif %}
+                    </h4>
+                    {% if article['content_en_ipa'] %}
+                        {{ article['content_en_ipa']|safe }}
+                    {% else %}
+                        {{ article['content_en']|safe }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bilingual Content (Vietnamese - Japanese) -->
+    <div id="content-vi-jp" class="content-section {% if lang == 'vi-jp' %}active{% endif %}">
+        <div class="bilingual-container">
+            <div class="lang-column">
+                <h3>🇻🇳 Tiếng Việt</h3>
+                <div class="article-content">
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">{{ article['title_vi'] }}</h4>
+                    {{ article['content_vi']|safe }}
+                </div>
+            </div>
+            <div class="lang-column">
+                <h3>🇯🇵 日本語 (Furigana)</h3>
+                <div class="article-content">
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">
+                        {% if article['title_jp_furigana'] %}
+                            {{ article['title_jp_furigana']|safe }}
+                        {% else %}
+                            {{ article['title_jp'] }}
+                        {% endif %}
+                    </h4>
+                    {% if article['content_jp_furigana'] %}
+                        {{ article['content_jp_furigana']|safe }}
+                    {% else %}
+                        {{ article['content_jp']|safe }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bilingual Content (English - Japanese) -->
+    <div id="content-en-jp" class="content-section {% if lang == 'en-jp' %}active{% endif %}">
+        <div class="bilingual-container">
+            <div class="lang-column">
+                <h3>�🇧 English (IPA)</h3>
+                <div class="article-content">
+                    <h4 style="margin-bottom: 10px;">{{ article['title_en'] }}</h4>
+                    {% if article['content_en_ipa'] %}
+                        {{ article['content_en_ipa']|safe }}
+                    {% else %}
+                        {{ article['content_en']|safe }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="lang-column">
+                <h3>🇯🇵 日本語 (Furigana)</h3>
+                <div class="article-content">
+                    <h4 style="margin-bottom: 10px;">{{ article['title_jp'] }}</h4>
+                    {% if article['content_jp_furigana'] %}
+                        {{ article['content_jp_furigana']|safe }}
+                    {% else %}
+                        {{ article['content_jp']|safe }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Trilingual Content (Vietnamese - English - Japanese) -->
+    <div id="content-all" class="content-section {% if lang == 'all' %}active{% endif %}">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+            <div class="lang-column">
+                <h3>�🇻🇳 Tiếng Việt</h3>
+                <div class="article-content">
+                    <h4 style="margin-bottom: 10px;">{{ article['title_vi'] }}</h4>
+                    {{ article['content_vi']|safe }}
+                </div>
+            </div>
+            <div class="lang-column">
+                <h3>🇬🇧 English (IPA)</h3>
+                <div class="article-content">
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">
+                        {% if article['title_en_ipa'] %}
+                            {{ article['title_en_ipa']|safe }}
+                        {% else %}
+                            {{ article['title_en'] }}
+                        {% endif %}
+                    </h4>
+                    {% if article['content_en_ipa'] %}
+                        {{ article['content_en_ipa']|safe }}
+                    {% else %}
+                        {{ article['content_en']|safe }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="lang-column">
+                <h3>🇯🇵 日本語 (Furigana)</h3>
+                <div class="article-content">
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">
+                        {% if article['title_jp_furigana'] %}
+                            {{ article['title_jp_furigana']|safe }}
+                        {% else %}
+                            {{ article['title_jp'] }}
+                        {% endif %}
+                    </h4>
+                    {% if article['content_jp_furigana'] %}
+                        {{ article['content_jp_furigana']|safe }}
+                    {% else %}
+                        {{ article['content_jp']|safe }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Furigana Toggle Button -->
+<button id="furiganaToggle" class="furigana-toggle-btn" data-tooltip="Bật/Tắt Furigana" onclick="toggleAllFurigana()">
+    あ
+</button>
+
+<script>
+    let furiganaEnabled = true;
+    
+    function switchLang(lang) {
+        // Update URL without page reload
+        const url = new URL(window.location);
+        url.searchParams.set('lang', lang);
+        window.history.pushState({}, '', url);
+        
+        // Hide all content sections
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // Show selected content
+        document.getElementById('content-' + lang).classList.add('active');
+        
+        // Update button states
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+    }
+    
+    // Toggle all furigana on/off
+    function toggleAllFurigana() {
+        furiganaEnabled = !furiganaEnabled;
+        const toggleBtn = document.getElementById('furiganaToggle');
+        const allRuby = document.querySelectorAll('ruby');
+        
+        if (furiganaEnabled) {
+            // Show all furigana
+            allRuby.forEach(ruby => {
+                ruby.classList.remove('furigana-hidden');
+                ruby.classList.remove('show-rt');
+            });
+            toggleBtn.classList.remove('off');
+            toggleBtn.setAttribute('data-tooltip', 'Tắt Furigana');
+        } else {
+            // Hide all furigana
+            allRuby.forEach(ruby => {
+                ruby.classList.add('furigana-hidden');
+                ruby.classList.remove('show-rt');
+            });
+            toggleBtn.classList.add('off');
+            toggleBtn.setAttribute('data-tooltip', 'Bật Furigana');
+        }
+    }
+    
+    // Click individual ruby to toggle its furigana when global is off
+    document.addEventListener('click', function(e) {
+        const ruby = e.target.closest('ruby');
+        if (ruby && !furiganaEnabled) {
+            ruby.classList.toggle('show-rt');
+        }
+    });
+    
+    // Prevent default behavior on ruby click
+    document.addEventListener('DOMContentLoaded', function() {
+        const allRuby = document.querySelectorAll('ruby');
+        allRuby.forEach(ruby => {
+            ruby.style.cursor = 'pointer';
+        });
+    });
+</script>
+{% endblock %}
