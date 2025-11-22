@@ -520,7 +520,7 @@ def index():
     conn.close()
     return render_template('index.html', articles=articles)
 
-# Article detail page - Tự động tạo IPA và Furigana khi hiển thị
+# Article detail page - Load nhanh, lazy load furigana sau
 @app.route('/article/<int:article_id>')
 def article_detail(article_id):
     lang = request.args.get('lang', 'vi')
@@ -531,10 +531,17 @@ def article_detail(article_id):
     if article_raw is None:
         return "Article not found", 404
     
-    # Xử lý bài viết: tạo IPA và Furigana
-    article = process_article_content(article_raw)
+    # Convert to dict - KHÔNG GENERATE FURIGANA/IPA ngay
+    # Để frontend lazy load từng phần
+    article = dict(article_raw)
     
-    return render_template('article.html', article=article, lang=lang)
+    # Chỉ set empty strings cho các trường processed
+    article['title_en_ipa'] = ''
+    article['title_jp_furigana'] = ''
+    article['content_en_ipa'] = ''
+    article['content_jp_furigana'] = ''
+    
+    return render_template('article_lazy.html', article=article, lang=lang)
 
 # Delete Article
 @app.route('/article/delete/<int:article_id>', methods=['POST'])
@@ -610,6 +617,39 @@ def api_article(article_id):
     # Xử lý và trả về JSON với IPA và Furigana
     article = process_article_content(article_raw)
     return jsonify(dict(article))
+
+# API endpoint for lazy loading furigana by sentence
+@app.route('/api/furigana/generate', methods=['POST'])
+def generate_furigana_chunk():
+    """
+    Generate furigana cho một đoạn text (lazy loading)
+    Request body: {"text": "日本語のテキスト", "type": "furigana" hoặc "ipa"}
+    """
+    data = request.get_json()
+    text = data.get('text', '')
+    gen_type = data.get('type', 'furigana')
+    
+    if not text:
+        return jsonify({'error': 'No text provided'}), 400
+    
+    try:
+        if gen_type == 'furigana':
+            result = generate_furigana_html(text)
+        elif gen_type == 'ipa':
+            result = generate_ipa_html(text)
+        else:
+            return jsonify({'error': 'Invalid type'}), 400
+        
+        return jsonify({
+            'success': True,
+            'original': text,
+            'processed': result
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 if __name__ == '__main__':
     init_db()
