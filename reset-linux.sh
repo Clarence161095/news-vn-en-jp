@@ -288,6 +288,33 @@ else
     echo -e "${RED}❌ Process: NOT RUNNING${NC}"
 fi
 
+# Check and open firewall port
+echo ""
+echo "Checking firewall for port 5000..."
+
+# Check if firewalld is running
+if systemctl is-active --quiet firewalld 2>/dev/null; then
+    echo -e "${YELLOW}ℹ️  Detected firewalld - opening port 5000...${NC}"
+    sudo firewall-cmd --permanent --add-port=5000/tcp >/dev/null 2>&1
+    sudo firewall-cmd --reload >/dev/null 2>&1
+    if sudo firewall-cmd --list-ports 2>/dev/null | grep -q "5000/tcp"; then
+        echo -e "${GREEN}✅ Firewall: Port 5000 opened (firewalld)${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Firewall: Could not verify port 5000${NC}"
+    fi
+# Check if ufw is active
+elif command -v ufw &>/dev/null && sudo ufw status 2>/dev/null | grep -q "Status: active"; then
+    echo -e "${YELLOW}ℹ️  Detected ufw - opening port 5000...${NC}"
+    sudo ufw allow 5000/tcp >/dev/null 2>&1
+    if sudo ufw status 2>/dev/null | grep -q "5000/tcp"; then
+        echo -e "${GREEN}✅ Firewall: Port 5000 opened (ufw)${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Firewall: Could not verify port 5000${NC}"
+    fi
+else
+    echo -e "${YELLOW}ℹ️  No active firewall detected (firewalld/ufw)${NC}"
+fi
+
 # Check port
 echo ""
 echo "Checking port 5000..."
