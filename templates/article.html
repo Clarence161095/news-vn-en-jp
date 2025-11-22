@@ -253,16 +253,19 @@
     <!-- Japanese Content with Furigana -->
     <div id="content-jp" class="content-section {% if lang == 'jp' %}active{% endif %}">
         <div class="article-content">
-            <h3 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.8em;" data-lazy-furigana="title">
-                {{ article['title_jp'] }}
+            <h3 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.8em;">
+                {% if article['title_jp_furigana'] %}
+                    {{ article['title_jp_furigana']|safe }}
+                {% else %}
+                    {{ article['title_jp'] }}
+                {% endif %}
             </h3>
-            <div id="jp-content-container" data-lazy-furigana="content">
-                {{ article['content_jp']|safe }}
-            </div>
-            <!-- Loading indicator -->
-            <div id="furigana-loading" style="display: none; text-align: center; padding: 20px; color: #667eea;">
-                <div style="display: inline-block; width: 30px; height: 30px; border: 3px solid #667eea; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                <p style="margin-top: 10px;">Đang tạo Furigana...</p>
+            <div>
+                {% if article['content_jp_furigana'] %}
+                    {{ article['content_jp_furigana']|safe }}
+                {% else %}
+                    {{ article['content_jp']|safe }}
+                {% endif %}
             </div>
         </div>
     </div>
