@@ -215,30 +215,67 @@ KATAKANA_TO_ENGLISH_FALLBACK = {
     'エコシステム': 'ecosystem',
 }
 
+# Load Katakana cache from JSON file (2000+ words for instant lookup)
+KATAKANA_CACHE_FILE = 'katakana_cache.json'
+KATAKANA_CACHE = {}
+try:
+    with open(KATAKANA_CACHE_FILE, 'r', encoding='utf-8') as f:
+        KATAKANA_CACHE = json.load(f)
+    print(f"✓ Loaded {len(KATAKANA_CACHE)} Katakana translations from cache file")
+except FileNotFoundError:
+    print(f"⚠️  Cache file '{KATAKANA_CACHE_FILE}' not found. Run 'generate_cache.bat' to create it.")
+    print(f"   Using fallback dictionary ({len(KATAKANA_TO_ENGLISH_FALLBACK)} words) + Google Translate")
+except Exception as e:
+    print(f"❌ Error loading cache file: {e}")
+    print(f"   Using fallback dictionary ({len(KATAKANA_TO_ENGLISH_FALLBACK)} words) + Google Translate")
+
+# In-memory cache for Katakana translations
+_katakana_translation_cache = {}
+
+# In-memory cache for processed articles
+_article_cache = {}
+
 def translate_katakana_to_english(katakana_text):
     """
-    Dịch Katakana sang tiếng Anh
-    - Ưu tiên dùng Google Translate nếu có internet
-    - Fallback sang dictionary nếu không có internet hoặc lỗi
+    Dịch Katakana sang tiếng Anh với multi-tier caching
+    - Tier 1: In-memory cache (instant, runtime only)
+    - Tier 2: JSON file cache (fast, ~2000+ words, persistent)
+    - Tier 3: Fallback dictionary (fast, ~200 common words)
+    - Tier 4: Google Translate (slow, online, cached after first call)
     """
     if not katakana_text or len(katakana_text) <= 1:
         return None
     
-    # Kiểm tra trong fallback dictionary trước (nhanh hơn)
-    if katakana_text in KATAKANA_TO_ENGLISH_FALLBACK:
-        return KATAKANA_TO_ENGLISH_FALLBACK[katakana_text]
+    # Tier 1: Check in-memory cache first (fastest, runtime only)
+    if katakana_text in _katakana_translation_cache:
+        return _katakana_translation_cache[katakana_text]
     
-    # Thử dùng Google Translate
+    # Tier 2: Check JSON file cache (fast, persistent, 2000+ words)
+    if katakana_text in KATAKANA_CACHE:
+        result = KATAKANA_CACHE[katakana_text]
+        _katakana_translation_cache[katakana_text] = result
+        return result
+    
+    # Tier 3: Check fallback dictionary (fast, common words)
+    if katakana_text in KATAKANA_TO_ENGLISH_FALLBACK:
+        result = KATAKANA_TO_ENGLISH_FALLBACK[katakana_text]
+        _katakana_translation_cache[katakana_text] = result
+        return result
+    
+    # Tier 4: Use Google Translate (slow, will be cached)
     if TRANSLATOR_AVAILABLE:
         try:
             # Translate từ tiếng Nhật sang tiếng Anh
             result = translator.translate(katakana_text)
             if result and result.lower() != katakana_text.lower():
+                # Cache the result for future use
+                _katakana_translation_cache[katakana_text] = result
                 return result
         except Exception as e:
             print(f"Translation error for '{katakana_text}': {e}")
     
-    # Không dịch được → trả về None
+    # Không dịch được → cache None để tránh retry
+    _katakana_translation_cache[katakana_text] = None
     return None
 
 # Database initialization - Chỉ lưu nội dung gốc, không lưu IPA và Furigana
@@ -368,7 +405,14 @@ def process_article_content(article):
     """
     Xử lý bài viết: tạo IPA và Furigana tự động từ nội dung gốc
     Bao gồm cả TITLE và CONTENT
+    Sử dụng cache để tăng tốc độ
     """
+    article_id = article.get('id')
+    
+    # Check cache first
+    if article_id and article_id in _article_cache:
+        return _article_cache[article_id]
+    
     processed = dict(article)
     
     # Tạo IPA cho tiêu đề tiếng Anh
@@ -394,6 +438,10 @@ def process_article_content(article):
         processed['content_jp_furigana'] = generate_furigana_html(article['content_jp'])
     else:
         processed['content_jp_furigana'] = ''
+    
+    # Cache the processed article for future requests
+    if article_id:
+        _article_cache[article_id] = processed
     
     return processed
 
@@ -426,6 +474,10 @@ def article_detail(article_id):
 # Delete Article
 @app.route('/article/delete/<int:article_id>', methods=['POST'])
 def delete_article(article_id):
+    # Clear cache for this article
+    if article_id in _article_cache:
+        del _article_cache[article_id]
+    
     conn = get_db()
     conn.execute('DELETE FROM articles WHERE id = ?', (article_id,))
     conn.commit()
@@ -466,6 +518,9 @@ def import_articles():
             
             conn.commit()
             conn.close()
+            
+            # Clear article cache after import to ensure fresh data
+            _article_cache.clear()
             
             flash(f'Đã import thành công {imported_count} bài viết! IPA và Furigana sẽ được tạo tự động khi xem bài.', 'success')
             return redirect(url_for('index'))
