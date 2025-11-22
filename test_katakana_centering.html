@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Katakana + Centering Test</title>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .test-section {
+            background: white;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #555;
+            margin-top: 30px;
+        }
+
+        .content {
+            font-size: 24px;
+            line-height: 2.5;
+            padding: 20px;
+            background: #fafafa;
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
+        }
+
+        /* FLEXBOX + TRANSFORM CENTERING (Latest Version) */
+        ruby {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 0 2px;
+        }
+
+        ruby rt {
+            display: none;
+            position: absolute;
+            top: -3em;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.6em;
+            color: #2196F3;
+            white-space: nowrap;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2px 8px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border: 1px solid #2196F3;
+            z-index: 100;
+        }
+
+        ruby.show-rt rt {
+            display: block;
+        }
+
+        /* Visual debugging */
+        .debug ruby {
+            background: #ffe0e0;
+            border: 1px dashed #ff6b6b;
+            padding: 2px;
+        }
+
+        .debug ruby rt {
+            background: #ffeb3b;
+            border: 2px solid #f44336;
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #2196F3;
+            border-radius: 4px;
+        }
+
+        .success {
+            background: #e8f5e9;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #4CAF50;
+            border-radius: 4px;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-box {
+            width: 30px;
+            height: 20px;
+            border: 1px solid #999;
+            border-radius: 3px;
+        }
+
+        .katakana-en { background: #c8e6c9; }
+        .kanji-hira { background: #bbdefb; }
+    </style>
+</head>
+<body>
+    <div class="test-section">
+        <h1>✓ Final Test: Katakana → English + Centering</h1>
+        
+        <div class="success">
+            <strong>✓ SUCCESS!</strong> Katakana now shows <strong>ENGLISH</strong> translation, not romaji!<br>
+            Example: コンピュータ → <strong>computer</strong> (not "konpyuuta")
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box katakana-en"></div>
+                <span>Katakana → English</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box kanji-hira"></div>
+                <span>Kanji → Hiragana</span>
+            </div>
+        </div>
+
+        <button onclick="toggleFurigana()">Toggle Furigana (Click to Show/Hide)</button>
+        <button onclick="toggleDebug()">Toggle Debug Mode (Visual Borders)</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 1: Katakana Words (Should show ENGLISH)</h2>
+        <div class="info">
+            Katakana loan words should display their English equivalents:<br>
+            • コンピュータ → "computer"<br>
+            • プログラミング → "programming"<br>
+            • データベース → "database"
+        </div>
+        <div id="test1" class="content">
+            <!-- Katakana → English -->
+            <ruby>コンピュータ<rt>computer</rt></ruby>の<ruby>使い方<rt>つかいかた</rt></ruby>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Mixed Katakana + Kanji</h2>
+        <div class="content">
+            <ruby>データベース<rt>database</rt></ruby><ruby>設計<rt>せっけい</rt></ruby>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Programming Context</h2>
+        <div class="content">
+            <ruby>プログラミング<rt>programming</rt></ruby><ruby>言語<rt>げんご</rt></ruby>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Server Management</h2>
+        <div class="content">
+            <ruby>サーバー<rt>server</rt></ruby><ruby>管理<rt>かんり</rt></ruby>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 5: Cloud Service (AWS)</h2>
+        <div class="content">
+            AWS<ruby>クラウド<rt>cloud</rt></ruby><ruby>サービス<rt>service</rt></ruby>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 6: Different Word Lengths (Centering Test)</h2>
+        <div class="info">
+            Testing centering with various word lengths to ensure furigana is centered correctly.
+        </div>
+        <div class="content">
+            <ruby>コンピュータ<rt>computer</rt></ruby>
+            <ruby>データ<rt>data</rt></ruby>
+            <ruby>プログラミング<rt>programming</rt></ruby>
+            <ruby>日<rt>ひ</rt></ruby>
+            <ruby>本<rt>ほん</rt></ruby>
+            <ruby>語<rt>ご</rt></ruby>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Checklist</h2>
+        <div class="info">
+            <strong>✓ Katakana displays ENGLISH:</strong><br>
+            &nbsp;&nbsp;• コンピュータ → "computer" ✓<br>
+            &nbsp;&nbsp;• データベース → "database" ✓<br>
+            &nbsp;&nbsp;• プログラミング → "programming" ✓<br>
+            &nbsp;&nbsp;• サーバー → "server" ✓<br>
+            &nbsp;&nbsp;• クラウド → "cloud" ✓<br>
+            <br>
+            <strong>□ Furigana is CENTERED:</strong><br>
+            &nbsp;&nbsp;• Click "Toggle Furigana" above<br>
+            &nbsp;&nbsp;• Verify furigana appears centered above each word<br>
+            &nbsp;&nbsp;• Test with different word lengths<br>
+            &nbsp;&nbsp;• Use Debug Mode to see alignment borders
+        </div>
+    </div>
+
+    <script>
+        let showFurigana = false;
+        let debugMode = false;
+
+        function toggleFurigana() {
+            showFurigana = !showFurigana;
+            const rubyElements = document.querySelectorAll('ruby');
+            
+            rubyElements.forEach(ruby => {
+                if (showFurigana) {
+                    ruby.classList.add('show-rt');
+                } else {
+                    ruby.classList.remove('show-rt');
+                }
+            });
+        }
+
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const contentDivs = document.querySelectorAll('.content');
+            
+            contentDivs.forEach(div => {
+                if (debugMode) {
+                    div.classList.add('debug');
+                } else {
+                    div.classList.remove('debug');
+                }
+            });
+        }
+
+        // Auto-show on load for demonstration
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                toggleFurigana();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

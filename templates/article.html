@@ -11,7 +11,24 @@
         right: 30px;
         width: 60px;
         height: 60px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        backg        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+            <div class="lang-column">
+                <h3>🇻🇳 Tiếng Việt</h3>
+                <div class="article-content">
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">{{ article['title_vi'] }}</h4>
+                    {{ article['content_vi']|safe }}
+                </div>
+            </div>
+            <div class="lang-column">
+                <h3>🇬🇧 English (IPA)</h3>
+                <div class="article-content">
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">
+                        {% if article['title_en_ipa'] %}
+                            {{ article['title_en_ipa']|safe }}
+                        {% else %}
+                            {{ article['title_en'] }}
+                        {% endif %}
+                    </h4>ient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
         border-radius: 50%;
@@ -58,25 +75,105 @@
         opacity: 1;
     }
     
-    /* Ruby styling when furigana is hidden */
-    ruby.furigana-hidden rt {
-        display: none;
-    }
-    
-    /* Individual ruby hover effect */
+    /* Ruby styling - RESET ALL */
     ruby {
         cursor: pointer;
-        transition: background-color 0.2s;
-        padding: 2px;
-        border-radius: 3px;
+        position: relative;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0 3px;
+        padding: 0;
+        line-height: 1;
+        vertical-align: baseline;
+        transition: all 0.2s ease;
     }
     
     ruby:hover {
         background-color: rgba(102, 126, 234, 0.1);
+        border-radius: 3px;
+    }
+    
+    /* Hide furigana when toggle is off */
+    ruby.furigana-hidden rt {
+        display: none !important;
+    }
+    
+    /* Ruby base text */
+    ruby rb,
+    ruby > *:not(rt) {
+        display: inline;
+    }
+    
+    /* Show furigana - ABSOLUTE CENTERING */
+    ruby.show-rt {
+        background-color: rgba(102, 126, 234, 0.05);
+        border-radius: 3px;
     }
     
     ruby.show-rt rt {
-        display: inline !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: -3em;
+        left: 50%;
+        transform: translateX(-50%);
+        
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 0.65em;
+        font-weight: 600;
+        white-space: nowrap;
+        z-index: 1000;
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.6);
+        animation: popIn 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        
+        min-width: 50px;
+        text-align: center;
+    }
+    
+    /* Animation for furigana popup */
+    @keyframes popIn {
+        0% {
+            opacity: 0;
+            transform: translateX(-50%) translateY(8px) scale(0.85);
+        }
+        60% {
+            transform: translateX(-50%) translateY(-2px) scale(1.05);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0) scale(1);
+        }
+    }
+    
+    /* Arrow pointer - PERFECTLY CENTERED */
+    ruby.show-rt rt::before {
+        content: '';
+        position: absolute;
+        bottom: -6px;
+        left: 50%;
+        margin-left: -6px;
+        width: 0;
+        height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid #764ba2;
+    }
+    
+    /* Content spacing to avoid overlap */
+    .article-content {
+        padding-top: 2em;
+        line-height: 3;
+    }
+    
+    .article-content p {
+        margin-bottom: 1.5em;
+        line-height: 3;
     }
 </style>
 {% endblock %}
@@ -128,7 +225,7 @@
     <!-- Vietnamese Content -->
     <div id="content-vi" class="content-section {% if lang == 'vi' %}active{% endif %}">
         <div class="article-content">
-            <h3 style="color: #2c3e50; margin-bottom: 15px;">{{ article['title_vi'] }}</h3>
+            <h3 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.8em;">{{ article['title_vi'] }}</h3>
             <div>{{ article['content_vi']|safe }}</div>
         </div>
     </div>
@@ -136,7 +233,13 @@
     <!-- English Content with IPA -->
     <div id="content-en" class="content-section {% if lang == 'en' %}active{% endif %}">
         <div class="article-content">
-            <h3 style="color: #2c3e50; margin-bottom: 15px;">{{ article['title_en'] }}</h3>
+            <h3 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.8em;">
+                {% if article['title_en_ipa'] %}
+                    {{ article['title_en_ipa']|safe }}
+                {% else %}
+                    {{ article['title_en'] }}
+                {% endif %}
+            </h3>
             <div>
                 {% if article['content_en_ipa'] %}
                     {{ article['content_en_ipa']|safe }}
@@ -150,7 +253,13 @@
     <!-- Japanese Content with Furigana -->
     <div id="content-jp" class="content-section {% if lang == 'jp' %}active{% endif %}">
         <div class="article-content">
-            <h3 style="color: #2c3e50; margin-bottom: 15px;">{{ article['title_jp'] }}</h3>
+            <h3 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.8em;">
+                {% if article['title_jp_furigana'] %}
+                    {{ article['title_jp_furigana']|safe }}
+                {% else %}
+                    {{ article['title_jp'] }}
+                {% endif %}
+            </h3>
             <div>
                 {% if article['content_jp_furigana'] %}
                     {{ article['content_jp_furigana']|safe }}
@@ -167,14 +276,20 @@
             <div class="lang-column">
                 <h3>🇻🇳 Tiếng Việt</h3>
                 <div class="article-content">
-                    <h4 style="margin-bottom: 10px;">{{ article['title_vi'] }}</h4>
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">{{ article['title_vi'] }}</h4>
                     {{ article['content_vi']|safe }}
                 </div>
             </div>
             <div class="lang-column">
                 <h3>🇬🇧 English (IPA)</h3>
                 <div class="article-content">
-                    <h4 style="margin-bottom: 10px;">{{ article['title_en'] }}</h4>
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">
+                        {% if article['title_en_ipa'] %}
+                            {{ article['title_en_ipa']|safe }}
+                        {% else %}
+                            {{ article['title_en'] }}
+                        {% endif %}
+                    </h4>
                     {% if article['content_en_ipa'] %}
                         {{ article['content_en_ipa']|safe }}
                     {% else %}
@@ -191,14 +306,20 @@
             <div class="lang-column">
                 <h3>🇻🇳 Tiếng Việt</h3>
                 <div class="article-content">
-                    <h4 style="margin-bottom: 10px;">{{ article['title_vi'] }}</h4>
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">{{ article['title_vi'] }}</h4>
                     {{ article['content_vi']|safe }}
                 </div>
             </div>
             <div class="lang-column">
                 <h3>🇯🇵 日本語 (Furigana)</h3>
                 <div class="article-content">
-                    <h4 style="margin-bottom: 10px;">{{ article['title_jp'] }}</h4>
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">
+                        {% if article['title_jp_furigana'] %}
+                            {{ article['title_jp_furigana']|safe }}
+                        {% else %}
+                            {{ article['title_jp'] }}
+                        {% endif %}
+                    </h4>
                     {% if article['content_jp_furigana'] %}
                         {{ article['content_jp_furigana']|safe }}
                     {% else %}
@@ -250,7 +371,13 @@
             <div class="lang-column">
                 <h3>🇬🇧 English (IPA)</h3>
                 <div class="article-content">
-                    <h4 style="margin-bottom: 10px;">{{ article['title_en'] }}</h4>
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">
+                        {% if article['title_en_ipa'] %}
+                            {{ article['title_en_ipa']|safe }}
+                        {% else %}
+                            {{ article['title_en'] }}
+                        {% endif %}
+                    </h4>
                     {% if article['content_en_ipa'] %}
                         {{ article['content_en_ipa']|safe }}
                     {% else %}
@@ -261,7 +388,13 @@
             <div class="lang-column">
                 <h3>🇯🇵 日本語 (Furigana)</h3>
                 <div class="article-content">
-                    <h4 style="margin-bottom: 10px;">{{ article['title_jp'] }}</h4>
+                    <h4 style="margin-bottom: 10px; font-size: 1.5em;">
+                        {% if article['title_jp_furigana'] %}
+                            {{ article['title_jp_furigana']|safe }}
+                        {% else %}
+                            {{ article['title_jp'] }}
+                        {% endif %}
+                    </h4>
                     {% if article['content_jp_furigana'] %}
                         {{ article['content_jp_furigana']|safe }}
                     {% else %}

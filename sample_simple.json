@@ -1,0 +1,20 @@
+[
+  {
+    "title_vi": "Học AWS cho người mới bắt đầu",
+    "title_en": "AWS for Beginners",
+    "title_jp": "初心者向けAWS",
+    "content_vi": "<h3>Giới thiệu về AWS</h3><p>Amazon Web Services (AWS) là nền tảng điện toán đám mây hàng đầu thế giới, cung cấp hơn 200 dịch vụ đầy đủ từ các trung tâm dữ liệu toàn cầu.</p><h3>Dịch vụ cơ bản</h3><p><strong>EC2 (Elastic Compute Cloud):</strong> Cung cấp máy chủ ảo có thể mở rộng trong đám mây.</p><p><strong>S3 (Simple Storage Service):</strong> Lưu trữ đối tượng với khả năng mở rộng cao.</p><p><strong>RDS (Relational Database Service):</strong> Dịch vụ cơ sở dữ liệu quan hệ được quản lý.</p>",
+    "content_en": "<h3>Introduction to AWS</h3><p>Amazon Web Services is the world's most comprehensive and broadly adopted cloud platform, offering over 200 fully featured services from data centers globally.</p><h3>Core Services</h3><p><strong>EC2 (Elastic Compute Cloud):</strong> Provides scalable computing capacity in the cloud.</p><p><strong>S3 (Simple Storage Service):</strong> Object storage with high scalability.</p><p><strong>RDS (Relational Database Service):</strong> Managed relational database service.</p>",
+    "content_jp": "<h3>AWSの紹介</h3><p>Amazon Web Services（AWS）は、世界で最も包括的で広く採用されているクラウドプラットフォームで、世界中のデータセンターから200以上のフル機能サービスを提供しています。</p><h3>コアサービス</h3><p><strong>EC2（Elastic Compute Cloud）：</strong>クラウド内でスケーラブルなコンピューティング容量を提供します。</p><p><strong>S3（Simple Storage Service）：</strong>高いスケーラビリティを持つオブジェクトストレージ。</p><p><strong>RDS（Relational Database Service）：</strong>マネージドリレーショナルデータベースサービス。</p>",
+    "category": "technology"
+  },
+  {
+    "title_vi": "Con đường trở thành Fullstack Developer",
+    "title_en": "The Path to Becoming a Fullstack Developer",
+    "title_jp": "フルスタック開発者への道",
+    "content_vi": "<h3>Fullstack Developer là gì?</h3><p>Fullstack Developer là lập trình viên có khả năng làm việc với cả Frontend và Backend, từ thiết kế giao diện người dùng đến xây dựng API và cơ sở dữ liệu.</p><h3>Kỹ năng cần thiết</h3><p><strong>Frontend:</strong> HTML, CSS, JavaScript, React, Vue.js</p><p><strong>Backend:</strong> Node.js, Python, Java, PHP</p><p><strong>Database:</strong> MySQL, PostgreSQL, MongoDB</p><p><strong>DevOps:</strong> Docker, Kubernetes, CI/CD</p>",
+    "content_en": "<h3>What is a Fullstack Developer?</h3><p>A Fullstack Developer is a programmer who can work with both Frontend and Backend technologies, from designing user interfaces to building APIs and databases.</p><h3>Required Skills</h3><p><strong>Frontend:</strong> HTML, CSS, JavaScript, React, Vue.js</p><p><strong>Backend:</strong> Node.js, Python, Java, PHP</p><p><strong>Database:</strong> MySQL, PostgreSQL, MongoDB</p><p><strong>DevOps:</strong> Docker, Kubernetes, CI/CD</p>",
+    "content_jp": "<h3>フルスタック開発者とは？</h3><p>フルスタック開発者とは、フロントエンドとバックエンドの両方の技術を扱うことができるプログラマーで、ユーザーインターフェースの設計からAPIやデータベースの構築まで行います。</p><h3>必要なスキル</h3><p><strong>フロントエンド：</strong>HTML、CSS、JavaScript、React、Vue.js</p><p><strong>バックエンド：</strong>Node.js、Python、Java、PHP</p><p><strong>データベース：</strong>MySQL、PostgreSQL、MongoDB</p><p><strong>DevOps：</strong>Docker、Kubernetes、CI/CD</p>",
+    "category": "career"
+  }
+]
