@@ -1,3 +1,17 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import sys
+import os
+
+# Fix UTF-8 encoding for Windows console
+if sys.platform == 'win32':
+    try:
+        import codecs
+        sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+        sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+    except:
+        pass  # If fails, continue without UTF-8 fix
+
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 import sqlite3
 import json
