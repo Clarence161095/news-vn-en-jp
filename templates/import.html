@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Import JSON - Đọc Báo{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 20px;">
+    <a href="{{ url_for('index') }}" style="color: #3498db; text-decoration: none;">← Quay lại danh sách</a>
+</div>
+
+<div class="card">
+    <h2 style="color: #2c3e50; margin-bottom: 20px;">📥 Import Bài Viết từ JSON</h2>
+    
+    <form method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+        <div>
+            <label for="json_data" style="display: block; margin-bottom: 10px; font-weight: bold;">
+                Dán JSON của bạn vào đây:
+            </label>
+            <textarea 
+                name="json_data" 
+                id="json_data" 
+                rows="20" 
+                style="width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 5px; font-family: 'Courier New', monospace; font-size: 0.9em;"
+                placeholder='Ví dụ:
+{
+    "title_vi": "Tiêu đề tiếng Việt",
+    "title_en": "English Title",
+    "title_jp": "日本語のタイトル",
+    "content_vi": "Nội dung tiếng Việt...",
+    "content_en": "English content...",
+    "content_jp": "日本語の内容...",
+    "content_en_ipa": "English with <ruby>pronunciation<rt>/prəˌnʌnsiˈeɪʃn/</rt></ruby>",
+    "content_jp_furigana": "<ruby>日本語<rt>にほんご</rt></ruby>",
+    "category": "news"
+}
+
+Hoặc import nhiều bài viết:
+[
+    { ... bài viết 1 ... },
+    { ... bài viết 2 ... }
+]'
+            ></textarea>
+        </div>
+        
+        <button 
+            type="submit" 
+            style="padding: 15px 30px; background-color: #2ecc71; color: white; border: none; border-radius: 5px; font-size: 1.1em; cursor: pointer; transition: background-color 0.3s;"
+            onmouseover="this.style.backgroundColor='#27ae60'"
+            onmouseout="this.style.backgroundColor='#2ecc71'"
+        >
+            ✅ Import Bài Viết
+        </button>
+    </form>
+    
+    <div style="margin-top: 30px; padding: 20px; background-color: #f9f9f9; border-radius: 5px;">
+        <h3 style="color: #2c3e50; margin-bottom: 15px;">📖 Hướng dẫn định dạng JSON:</h3>
+        <ul style="line-height: 2;">
+            <li><strong>title_vi:</strong> Tiêu đề tiếng Việt</li>
+            <li><strong>title_en:</strong> Tiêu đề tiếng Anh</li>
+            <li><strong>title_jp:</strong> Tiêu đề tiếng Nhật</li>
+            <li><strong>content_vi:</strong> Nội dung tiếng Việt (có thể chứa HTML)</li>
+            <li><strong>content_en:</strong> Nội dung tiếng Anh</li>
+            <li><strong>content_jp:</strong> Nội dung tiếng Nhật</li>
+            <li><strong>content_en_ipa:</strong> Nội dung tiếng Anh kèm IPA (dùng thẻ &lt;ruby&gt;)</li>
+            <li><strong>content_jp_furigana:</strong> Nội dung tiếng Nhật kèm Furigana (dùng thẻ &lt;ruby&gt;)</li>
+            <li><strong>category:</strong> Danh mục (news, book, article, v.v.)</li>
+        </ul>
+        
+        <h4 style="color: #2c3e50; margin-top: 20px; margin-bottom: 10px;">Ví dụ sử dụng Ruby tag:</h4>
+        <pre style="background-color: #fff; padding: 15px; border-radius: 5px; overflow-x: auto;">
+English IPA:
+&lt;ruby&gt;hello&lt;rt&gt;/həˈloʊ/&lt;/rt&gt;&lt;/ruby&gt; &lt;ruby&gt;world&lt;rt&gt;/wɜːrld/&lt;/rt&gt;&lt;/ruby&gt;
+
+Japanese Furigana:
+&lt;ruby&gt;日本語&lt;rt&gt;にほんご&lt;/rt&gt;&lt;/ruby&gt;を&lt;ruby&gt;勉強&lt;rt&gt;べんきょう&lt;/rt&gt;&lt;/ruby&gt;します。
+        </pre>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MFA QR Code - Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .qr-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .qr-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .qr-header h1 {
+            color: #2c3e50;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .qr-header p {
+            color: #7f8c8d;
+        }
+        
+        .qr-code-box {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .qr-code-box img {
+            max-width: 300px;
+            border: 5px solid white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .secret-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .secret-box h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .secret-code {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            word-break: break-all;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .instructions {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .instructions h3 {
+            color: #1565C0;
+            margin-bottom: 15px;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+        }
+        
+        .action-buttons {
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="qr-container">
+        <div class="qr-header">
+            <h1>📱 Cài đặt MFA</h1>
+            <p>Quét mã QR này bằng Google Authenticator</p>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 Hướng dẫn cài đặt:</h3>
+            <ol>
+                <li>Tải <strong>Google Authenticator</strong> từ App Store hoặc Google Play</li>
+                <li>Mở ứng dụng và chọn "Thêm mã" hoặc "+"</li>
+                <li>Chọn "Quét mã QR" và quét mã dưới đây</li>
+                <li>Hoặc nhập thủ công Secret Key bên dưới</li>
+                <li>Ứng dụng sẽ hiển thị mã 6 chữ số thay đổi mỗi 30 giây</li>
+            </ol>
+        </div>
+        
+        <div class="qr-code-box">
+            <h3 style="color: #2c3e50; margin-bottom: 20px;">Mã QR của bạn</h3>
+            <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code">
+        </div>
+        
+        <div class="secret-box">
+            <h3>🔑 Secret Key (Nhập thủ công)</h3>
+            <p style="color: #856404; margin-bottom: 10px;">
+                Nếu không thể quét mã QR, hãy nhập secret key này vào ứng dụng:
+            </p>
+            <div class="secret-code">{{ secret }}</div>
+            <p style="color: #856404; font-size: 0.9em; margin-top: 10px;">
+                ⚠️ Giữ secret key này an toàn! Không chia sẻ với người khác.
+            </p>
+        </div>
+        
+        <div class="instructions" style="background: #d4edda; border-left-color: #28a745;">
+            <h3 style="color: #155724;">✅ Sau khi cài đặt:</h3>
+            <ul style="list-style: none; margin-left: 0;">
+                <li>✓ Mỗi lần đăng nhập, bạn sẽ cần nhập mã 6 chữ số từ ứng dụng</li>
+                <li>✓ Mã thay đổi mỗi 30 giây để tăng cường bảo mật</li>
+                <li>✓ Ngay cả khi mật khẩu bị lộ, tài khoản vẫn an toàn</li>
+            </ul>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn">
+                ← Quay về Dashboard
+            </a>
+            <a href="{{ url_for('admin_logout') }}" class="btn btn-secondary">
+                🚪 Đăng xuất
+            </a>
+        </div>
+    </div>
+</body>
+</html>

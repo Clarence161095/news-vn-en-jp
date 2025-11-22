@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}{% if article %}Sửa bài viết{% else %}Tạo bài viết mới{% endif %} - Admin{% endblock %}
+
+{% block content %}
+<style>
+    .form-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+    
+    .form-header h2 {
+        margin: 0;
+    }
+    
+    .form-card {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .form-section {
+        margin-bottom: 30px;
+    }
+    
+    .form-section h3 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #ecf0f1;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ecf0f1;
+        border-radius: 5px;
+        font-size: 1em;
+        font-family: inherit;
+    }
+    
+    .form-group textarea {
+        min-height: 150px;
+        resize: vertical;
+    }
+    
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    .btn {
+        padding: 12px 30px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1em;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .btn-secondary {
+        background-color: #95a5a6;
+        color: white;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .help-text {
+        font-size: 0.9em;
+        color: #7f8c8d;
+        margin-top: 5px;
+    }
+    
+    .language-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .language-tabs {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="form-container">
+    <div class="form-header">
+        <h2>{% if article %}✏️ Sửa bài viết{% else %}➕ Tạo bài viết mới{% endif %}</h2>
+    </div>
+    
+    <form method="POST">
+        <div class="form-card">
+            <div class="form-section">
+                <h3>📝 Tiêu đề</h3>
+                <div class="language-tabs">
+                    <div class="form-group">
+                        <label for="title_vi">🇻🇳 Tiếng Việt</label>
+                        <input type="text" id="title_vi" name="title_vi" 
+                               value="{{ article['title_vi'] if article else '' }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="title_en">🇬🇧 English</label>
+                        <input type="text" id="title_en" name="title_en" 
+                               value="{{ article['title_en'] if article else '' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="title_jp">🇯🇵 日本語</label>
+                        <input type="text" id="title_jp" name="title_jp" 
+                               value="{{ article['title_jp'] if article else '' }}">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>📄 Nội dung</h3>
+                
+                <div class="form-group">
+                    <label for="content_vi">🇻🇳 Nội dung Tiếng Việt</label>
+                    <textarea id="content_vi" name="content_vi" required>{{ article['content_vi'] if article else '' }}</textarea>
+                    <div class="help-text">Hỗ trợ HTML. Sử dụng &lt;p&gt;, &lt;h3&gt;, &lt;strong&gt;, v.v.</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="content_en">🇬🇧 English Content</label>
+                    <textarea id="content_en" name="content_en">{{ article['content_en'] if article else '' }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="content_en_ipa">🔊 English với IPA</label>
+                    <textarea id="content_en_ipa" name="content_en_ipa">{{ article['content_en_ipa'] if article else '' }}</textarea>
+                    <div class="help-text">Sử dụng &lt;ruby&gt;word&lt;rt&gt;/pronunciation/&lt;/rt&gt;&lt;/ruby&gt;</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="content_jp">🇯🇵 日本語コンテンツ</label>
+                    <textarea id="content_jp" name="content_jp">{{ article['content_jp'] if article else '' }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="content_jp_furigana">🎌 日本語 với Furigana</label>
+                    <textarea id="content_jp_furigana" name="content_jp_furigana">{{ article['content_jp_furigana'] if article else '' }}</textarea>
+                    <div class="help-text">Sử dụng &lt;ruby&gt;漢字&lt;rt&gt;かんじ&lt;/rt&gt;&lt;/ruby&gt;</div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>🏷️ Phân loại</h3>
+                <div class="form-group">
+                    <label for="category">Danh mục</label>
+                    <select id="category" name="category">
+                        <option value="general" {% if article and article['category'] == 'general' %}selected{% endif %}>General</option>
+                        <option value="technology" {% if article and article['category'] == 'technology' %}selected{% endif %}>Technology</option>
+                        <option value="education" {% if article and article['category'] == 'education' %}selected{% endif %}>Education</option>
+                        <option value="career" {% if article and article['category'] == 'career' %}selected{% endif %}>Career</option>
+                        <option value="tutorial" {% if article and article['category'] == 'tutorial' %}selected{% endif %}>Tutorial</option>
+                        <option value="news" {% if article and article['category'] == 'news' %}selected{% endif %}>News</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                💾 {% if article %}Cập nhật{% else %}Tạo mới{% endif %}
+            </button>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+                ❌ Hủy
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

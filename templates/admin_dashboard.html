@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Quản lý bài viết{% endblock %}
+
+{% block content %}
+<style>
+    .admin-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .admin-header h2 {
+        margin: 0;
+    }
+    
+    .admin-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+    }
+    
+    .btn-success {
+        background-color: #2ecc71;
+        color: white;
+    }
+    
+    .btn-danger {
+        background-color: #e74c3c;
+        color: white;
+    }
+    
+    .btn-warning {
+        background-color: #f39c12;
+        color: white;
+    }
+    
+    .btn-secondary {
+        background-color: #95a5a6;
+        color: white;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .articles-table {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    thead {
+        background-color: #34495e;
+        color: white;
+    }
+    
+    th, td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #ecf0f1;
+    }
+    
+    tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .article-title {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .article-category {
+        display: inline-block;
+        padding: 4px 12px;
+        background-color: #3498db;
+        color: white;
+        border-radius: 12px;
+        font-size: 0.85em;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 0.9em;
+    }
+    
+    .delete-form {
+        display: inline;
+    }
+</style>
+
+<div class="admin-header">
+    <div>
+        <h2>🎛️ Admin Dashboard</h2>
+        <p style="margin: 5px 0 0 0; opacity: 0.9;">Xin chào, {{ current_user.username }}!</p>
+    </div>
+    <div class="admin-actions">
+        <a href="{{ url_for('admin_create_article') }}" class="btn btn-success">
+            ➕ Tạo bài viết mới
+        </a>
+        <a href="{{ url_for('admin_qr_code') }}" class="btn btn-warning">
+            📱 QR Code MFA
+        </a>
+        <a href="{{ url_for('admin_logout') }}" class="btn btn-secondary">
+            🚪 Đăng xuất
+        </a>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="card" style="padding: 15px; margin-bottom: 20px; background-color: {% if category == 'success' %}#d4edda{% elif category == 'error' %}#f8d7da{% else %}#d1ecf1{% endif %}; border-left: 4px solid {% if category == 'success' %}#28a745{% elif category == 'error' %}#dc3545{% else %}#17a2b8{% endif %};">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="articles-table">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tiêu đề</th>
+                <th>Danh mục</th>
+                <th>Ngày tạo</th>
+                <th>Cập nhật</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if articles %}
+                {% for article in articles %}
+                <tr>
+                    <td>{{ article['id'] }}</td>
+                    <td>
+                        <div class="article-title">{{ article['title_vi'] or article['title_en'] or article['title_jp'] }}</div>
+                        <div style="font-size: 0.85em; color: #7f8c8d; margin-top: 3px;">
+                            {% if article['title_en'] %}EN: {{ article['title_en'][:50] }}...{% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="article-category">{{ article['category'] or 'general' }}</span>
+                    </td>
+                    <td style="font-size: 0.9em;">{{ article['created_at'][:16] }}</td>
+                    <td style="font-size: 0.9em;">{{ article['updated_at'][:16] if article['updated_at'] else '-' }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('article_detail', article_id=article['id'], lang='vi') }}" 
+                               class="btn btn-primary btn-sm" target="_blank">
+                                👁️ Xem
+                            </a>
+                            <a href="{{ url_for('admin_edit_article', article_id=article['id']) }}" 
+                               class="btn btn-warning btn-sm">
+                                ✏️ Sửa
+                            </a>
+                            <form method="POST" action="{{ url_for('admin_delete_article', article_id=article['id']) }}" 
+                                  class="delete-form" onsubmit="return confirm('Bạn có chắc chắn muốn xóa bài viết này?');">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    🗑️ Xóa
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: #7f8c8d;">
+                        Chưa có bài viết nào. Hãy tạo bài viết đầu tiên!
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<div style="margin-top: 30px; text-align: center;">
+    <a href="{{ url_for('index') }}" class="btn btn-primary">
+        ← Quay về trang chủ
+    </a>
+</div>
+{% endblock %}
