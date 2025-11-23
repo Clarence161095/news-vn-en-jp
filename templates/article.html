@@ -12,11 +12,19 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        margin: 0 3px;
+        margin: 0 2px;
         padding: 0;
-        line-height: 1;
+        line-height: 1.6;
         vertical-align: baseline;
         transition: all 0.2s ease;
+    }
+    
+    ruby > rb {
+        line-height: inherit;
+    }
+    
+    ruby > rt {
+        line-height: 1;
     }
     
     ruby:hover {
@@ -100,16 +108,131 @@
     
     .article-content {
         padding-top: 2em;
-        line-height: 2.5;
+        line-height: 1.8;
+        font-size: 1.1em;
+        transition: font-size 0.3s ease;
+        text-align: left;
+        word-spacing: normal;
     }
     
     .article-content p {
         margin-bottom: 1.5em;
-        line-height: 2.5;
+        line-height: 1.8;
+        text-align: left;
+        word-spacing: normal;
     }
     
-    /* IPA Toggle Button */
-    .ipa-toggle-btn {
+    /* Tables styling */
+    .article-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5em 0;
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .article-content table th,
+    .article-content table td {
+        padding: 12px 15px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+    
+    .article-content table th {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        font-weight: bold;
+        text-align: center;
+    }
+    
+    .article-content table tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+    
+    .article-content table tr:hover {
+        background-color: #e8f4f8;
+        transition: background-color 0.2s;
+    }
+    
+    /* Lists styling */
+    .article-content ul,
+    .article-content ol {
+        margin: 1.2em 0;
+        padding-left: 2.5em;
+        line-height: 2.2;
+    }
+    
+    .article-content ul li,
+    .article-content ol li {
+        margin-bottom: 0.8em;
+        padding-left: 0.5em;
+    }
+    
+    .article-content ul {
+        list-style-type: disc;
+    }
+    
+    .article-content ul ul {
+        list-style-type: circle;
+        margin-top: 0.5em;
+    }
+    
+    .article-content ul ul ul {
+        list-style-type: square;
+    }
+    
+    .article-content ol {
+        list-style-type: decimal;
+    }
+    
+    .article-content ol ol {
+        list-style-type: lower-alpha;
+        margin-top: 0.5em;
+    }
+    
+    .article-content ol ol ol {
+        list-style-type: lower-roman;
+    }
+    
+    /* Blockquote styling */
+    .article-content blockquote {
+        margin: 1.5em 0;
+        padding: 15px 20px;
+        border-left: 5px solid #3498db;
+        background-color: #f0f7fb;
+        font-style: italic;
+        border-radius: 0 8px 8px 0;
+    }
+    
+    /* Code blocks */
+    .article-content pre {
+        background-color: #f4f4f4;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        overflow-x: auto;
+        margin: 1.5em 0;
+    }
+    
+    .article-content code {
+        background-color: #f4f4f4;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+    }
+    
+    .article-content pre code {
+        background-color: transparent;
+        padding: 0;
+    }
+    
+    /* IPA Toggle Button - REMOVED, moved to settings */
+    
+    /* Settings Button (Gear Icon) - FIXED BOTTOM RIGHT */
+    .settings-btn {
         position: fixed;
         bottom: 30px;
         right: 30px;
@@ -119,47 +242,549 @@
         color: white;
         border: none;
         border-radius: 50%;
-        font-size: 24px;
+        font-size: 28px;
         cursor: pointer;
         box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
         transition: all 0.3s ease;
-        z-index: 1000;
+        z-index: 1001;
         display: flex;
         align-items: center;
         justify-content: center;
     }
     
-    .ipa-toggle-btn:hover {
-        transform: scale(1.1);
+    .settings-btn:hover {
+        transform: scale(1.1) rotate(90deg);
         box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
     }
     
-    .ipa-toggle-btn:active {
+    .settings-btn:active {
+        transform: scale(0.95) rotate(90deg);
+    }
+    
+    .settings-btn.open {
+        transform: rotate(135deg);
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    }
+    
+    /* Focus Mode Button - FIXED BOTTOM LEFT */
+    .focus-mode-btn {
+        position: fixed;
+        bottom: 30px;
+        left: 30px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: 28px;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        transition: all 0.3s ease;
+        z-index: 1001;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .focus-mode-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(155, 89, 182, 0.6);
+    }
+    
+    .focus-mode-btn:active {
         transform: scale(0.95);
     }
     
-    .ipa-toggle-btn.off {
-        background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    .focus-mode-btn.active {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
     }
     
-    .ipa-toggle-btn::before {
-        content: attr(data-tooltip);
-        position: absolute;
-        right: 70px;
-        background: rgba(0, 0, 0, 0.8);
-        color: white;
-        padding: 8px 12px;
-        border-radius: 6px;
-        white-space: nowrap;
-        font-size: 14px;
+    /* Settings Panel */
+    .settings-panel {
+        position: fixed;
+        bottom: 100px;
+        right: 30px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        padding: 20px;
+        width: 280px;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        z-index: 1000;
         opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s;
+        visibility: hidden;
+        transform: translateY(20px) scale(0.9);
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     }
     
-    .ipa-toggle-btn:hover::before {
+    .settings-panel.show {
         opacity: 1;
+        visibility: visible;
+        transform: translateY(0) scale(1);
     }
+    
+    .settings-panel h3 {
+        margin: 0 0 15px 0;
+        color: #2c3e50;
+        font-size: 18px;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 8px;
+    }
+    
+    .settings-section {
+        margin-bottom: 20px;
+    }
+    
+    .settings-section:last-child {
+        margin-bottom: 0;
+    }
+    
+    .settings-label {
+        display: block;
+        color: #555;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    
+    .settings-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    
+    .settings-controls button {
+        flex: 1;
+        padding: 10px;
+        border: 2px solid #3498db;
+        background: white;
+        color: #3498db;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+    
+    .settings-controls button:hover {
+        background: #3498db;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .settings-controls button:active {
+        transform: translateY(0);
+    }
+    
+    /* Delete Article Button */
+    .settings-panel form button[type="submit"] {
+        transition: all 0.3s ease;
+    }
+    
+    .settings-panel form button[type="submit"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+    }
+    
+    .settings-panel form button[type="submit"]:active {
+        transform: translateY(0);
+    }
+    
+    /* Toggle Switch */
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 30px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.3s;
+        border-radius: 30px;
+    }
+    
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .toggle-slider {
+        background-color: #3498db;
+    }
+    
+    input:checked + .toggle-slider:before {
+        transform: translateX(30px);
+    }
+    
+    .toggle-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    
+    .font-size-value {
+        display: inline-block;
+        min-width: 45px;
+        text-align: center;
+        background: #f0f0f0;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-weight: bold;
+        color: #3498db;
+    }
+    
+    /* Width Slider */
+    .width-slider {
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: linear-gradient(to right, #3498db 0%, #2ecc71 50%, #e74c3c 100%);
+        outline: none;
+        margin: 10px 0 5px 0;
+        -webkit-appearance: none;
+        appearance: none;
+        cursor: pointer;
+    }
+    
+    .width-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: white;
+        border: 3px solid #3498db;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        transition: all 0.2s;
+    }
+    
+    .width-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+        box-shadow: 0 3px 12px rgba(52, 152, 219, 0.5);
+    }
+    
+    .width-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: white;
+        border: 3px solid #3498db;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        transition: all 0.2s;
+    }
+    
+    .width-slider::-moz-range-thumb:hover {
+        transform: scale(1.2);
+        box-shadow: 0 3px 12px rgba(52, 152, 219, 0.5);
+    }
+    
+    body.dark-mode .width-slider {
+        background: linear-gradient(to right, #2980b9 0%, #27ae60 50%, #c0392b 100%);
+    }
+    
+    body.dark-mode .width-slider::-webkit-slider-thumb,
+    body.dark-mode .width-slider::-moz-range-thumb {
+        background: #2c2c2c;
+        border-color: #3498db;
+    }
+    
+    /* Dark Mode Styles */
+    body.dark-mode {
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+    }
+    
+    body.dark-mode .card {
+        background: #2c2c2c;
+        color: #e0e0e0;
+    }
+    
+    body.dark-mode h1,
+    body.dark-mode h2,
+    body.dark-mode h3,
+    body.dark-mode h4,
+    body.dark-mode h5,
+    body.dark-mode h6 {
+        color: #ffffff !important;
+    }
+    
+    body.dark-mode .article-content {
+        color: #e0e0e0;
+    }
+    
+    body.dark-mode .article-content h1,
+    body.dark-mode .article-content h2,
+    body.dark-mode .article-content h3,
+    body.dark-mode .article-content h4,
+    body.dark-mode .article-content h5,
+    body.dark-mode .article-content h6 {
+        color: #ffffff !important;
+    }
+    
+    body.dark-mode .article-content p,
+    body.dark-mode .article-content div,
+    body.dark-mode .article-content span,
+    body.dark-mode .article-content li {
+        color: #e0e0e0 !important;
+    }
+    
+    body.dark-mode .bilingual-vi,
+    body.dark-mode .bilingual-en {
+        background: #2c2c2c;
+        color: #e0e0e0;
+    }
+    
+    body.dark-mode .bilingual-column {
+        background-color: #2c2c2c;
+    }
+    
+    body.dark-mode .bilingual-content h1,
+    body.dark-mode .bilingual-content h2,
+    body.dark-mode .bilingual-content h3,
+    body.dark-mode .bilingual-content h4 {
+        color: #ffffff !important;
+    }
+    
+    body.dark-mode .bilingual-content p,
+    body.dark-mode .bilingual-content div,
+    body.dark-mode .bilingual-content span,
+    body.dark-mode .bilingual-content li {
+        color: #e0e0e0 !important;
+    }
+    
+    body.dark-mode .settings-panel {
+        background: #2c2c2c;
+        color: #e0e0e0;
+        border: 1px solid #444;
+    }
+    
+    body.dark-mode .settings-panel h3 {
+        color: #ffffff !important;
+        border-bottom-color: #3498db;
+    }
+    
+    body.dark-mode .settings-label {
+        color: #e0e0e0 !important;
+    }
+    
+    body.dark-mode .settings-controls button {
+        background: #3c3c3c;
+        border-color: #3498db;
+        color: #3498db;
+    }
+    
+    body.dark-mode .settings-controls button:hover {
+        background: #3498db;
+        color: white;
+    }
+    
+    body.dark-mode .font-size-value {
+        background: #3c3c3c;
+        color: #3498db;
+    }
+    
+    body.dark-mode .article-content table {
+        background-color: #3c3c3c;
+        color: #e0e0e0;
+    }
+    
+    body.dark-mode .article-content table th,
+    body.dark-mode .article-content table td {
+        border-color: #555;
+        color: #e0e0e0 !important;
+    }
+    
+    body.dark-mode .article-content table th {
+        color: #ffffff !important;
+    }
+    
+    body.dark-mode .article-content table tr:nth-child(even) {
+        background-color: #333;
+    }
+    
+    body.dark-mode .article-content table tr:hover {
+        background-color: #404040;
+    }
+    
+    body.dark-mode .article-content blockquote {
+        background-color: #2c3e50;
+        border-left-color: #3498db;
+        color: #e0e0e0 !important;
+    }
+    
+    body.dark-mode .article-content pre,
+    body.dark-mode .article-content code {
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+        border-color: #555;
+    }
+    
+    body.dark-mode ruby.show-rt rt {
+        background: linear-gradient(135deg, #2980b9 0%, #1a5276 100%);
+    }
+    
+    body.dark-mode a {
+        color: #5dade2;
+    }
+    
+    body.dark-mode a:hover {
+        color: #85c1e9;
+    }
+    
+    body.dark-mode .focus-mode-btn {
+        background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        box-shadow: 0 4px 15px rgba(155, 89, 182, 0.6);
+    }
+    
+    body.dark-mode .focus-mode-btn.active {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.6);
+    }
+    
+    /* Focus Mode Styles - Full Screen Immersive Reading */
+    body.focus-mode {
+        overflow: hidden !important; /* Remove outer scroll */
+        margin: 0;
+        padding: 0;
+    }
+    
+    body.focus-mode header,
+    body.focus-mode footer,
+    body.focus-mode .card > h1,
+    body.focus-mode .card > h2,
+    body.focus-mode .card > p,
+    body.focus-mode .card > .btn,
+    body.focus-mode .card > div:not(.bilingual-sync-container),
+    body.focus-mode .back-btn,
+    body.focus-mode .lang-selector,
+    body.focus-mode .bilingual-header,
+    body.focus-mode .content-section:not(#content-both) {
+        display: none !important;
+    }
+    
+    body.focus-mode .card {
+        max-width: 100%;
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        border-radius: 0;
+        overflow: hidden;
+    }
+    
+    body.focus-mode #content-both {
+        display: block !important;
+        height: 100vh;
+        width: 100vw;
+    }
+    
+    body.focus-mode .bilingual-sync-container {
+        max-height: 100vh;
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        padding: 0;
+    }
+    
+    body.focus-mode .bilingual-column {
+        max-height: 100vh;
+        height: 100vh;
+        border-radius: 0;
+        overflow-y: auto !important;
+        overflow-x: hidden;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        background: #ffffff !important;
+    }
+    
+    body.focus-mode .bilingual-vi,
+    body.focus-mode .bilingual-en {
+        overflow-y: auto !important;
+        overflow-x: hidden;
+        background: #ffffff !important;
+    }
+    
+    body.focus-mode.dark-mode .bilingual-column,
+    body.focus-mode.dark-mode .bilingual-vi,
+    body.focus-mode.dark-mode .bilingual-en {
+        background: #2c2c2c !important;
+    }
+    
+    body.focus-mode .bilingual-content {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    body.focus-mode .settings-btn {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        bottom: auto;
+        z-index: 1001;
+        background: rgba(52, 152, 219, 0.9);
+        backdrop-filter: blur(10px);
+    }
+    
+    body.focus-mode .focus-mode-btn {
+        /* Keep focus mode button visible in focus mode */
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        bottom: auto;
+    }
+    
+    body.focus-mode .settings-panel {
+        position: fixed;
+        top: 70px;
+        right: 20px;
+        z-index: 1002;
+    }
+    
+    @media (max-width: 768px) {
+        body.focus-mode .settings-btn {
+            top: 10px;
+            right: 10px;
+        }
+        
+        body.focus-mode .focus-mode-btn {
+            top: 10px;
+            left: 10px;
+        }
+        
+        body.focus-mode .settings-panel {
+            top: 60px;
+            right: 10px;
+        }
+    }
+
+    
     
     /* Bilingual Sync Container */
     .bilingual-sync-container {
@@ -173,19 +798,48 @@
     .bilingual-column {
         padding: 20px;
         overflow-y: auto;
+        overflow-x: hidden;
         max-height: 80vh;
-        background-color: #fafafa;
+        min-width: 0; /* Prevent grid blowout */
+        background-color: transparent;
         border-radius: 8px;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        position: relative;
+        z-index: 1;
     }
     
     .bilingual-vi {
-        background: linear-gradient(to right, #fff 0%, #f8f9fa 100%);
+        background: #ffffff;
         border-right: 1px solid #e0e0e0;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
     }
     
     .bilingual-en {
-        background: linear-gradient(to left, #fff 0%, #f8f9fa 100%);
+        background: #ffffff;
         border-left: 1px solid #e0e0e0;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        max-width: 100%;
+        overflow-x: auto;
+    }
+    
+    .bilingual-en .bilingual-content {
+        max-width: 100%;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+    
+    .bilingual-en .bilingual-content * {
+        max-width: 100% !important;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
     }
     
     .bilingual-divider {
@@ -193,9 +847,13 @@
         cursor: col-resize;
         position: relative;
         transition: background 0.3s;
+        touch-action: none; /* Prevent default touch behaviors */
+        -webkit-user-select: none;
+        user-select: none;
     }
     
-    .bilingual-divider:hover {
+    .bilingual-divider:hover,
+    .bilingual-divider:active {
         background: linear-gradient(180deg, #2980b9 0%, #1a252f 100%);
     }
     
@@ -208,11 +866,30 @@
         color: white;
         font-size: 20px;
         font-weight: bold;
+        pointer-events: none;
+    }
+    
+    .bilingual-divider::after {
+        content: '↔';
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: 16px;
+        opacity: 0.7;
+        pointer-events: none;
     }
     
     .bilingual-content p {
         margin-bottom: 1.5em;
-        line-height: 2.2;
+        line-height: 1.8;
+        text-align: left;
+        word-spacing: normal;
+        letter-spacing: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
     }
     
     .bilingual-content h1,
@@ -222,6 +899,85 @@
         margin-top: 1.5em;
         margin-bottom: 1em;
         color: #2c3e50;
+        text-align: left;
+    }
+    
+    /* Apply font size transition to bilingual content */
+    .bilingual-content {
+        transition: font-size 0.3s ease;
+        width: 100%;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        text-align: left;
+        word-spacing: normal;
+        letter-spacing: normal;
+        hyphens: auto;
+        -webkit-hyphens: auto;
+        -ms-hyphens: auto;
+        position: relative;
+        z-index: 10;
+    }
+    
+    .bilingual-content * {
+        max-width: 100%;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .bilingual-en .bilingual-content,
+    .bilingual-en .bilingual-content * {
+        color: inherit !important;
+        background: transparent !important;
+    }
+    
+    .bilingual-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5em 0;
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .bilingual-content table th,
+    .bilingual-content table td {
+        padding: 12px 15px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+    
+    .bilingual-content table th {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        font-weight: bold;
+        text-align: center;
+    }
+    
+    .bilingual-content table tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+    
+    .bilingual-content table tr:hover {
+        background-color: #e8f4f8;
+        transition: background-color 0.2s;
+    }
+    
+    .bilingual-content ul,
+    .bilingual-content ol {
+        margin: 1.2em 0;
+        padding-left: 2.5em;
+        line-height: 2.2;
+    }
+    
+    .bilingual-content ul li,
+    .bilingual-content ol li {
+        margin-bottom: 0.8em;
+        padding-left: 0.5em;
     }
     
     /* Synchronized scrolling indicator */
@@ -259,6 +1015,8 @@
             max-height: none;
             border: 1px solid #e0e0e0;
             border-radius: 8px;
+            overflow-y: visible;
+            scroll-behavior: smooth;
         }
         
         .bilingual-vi,
@@ -266,12 +1024,19 @@
             border: none;
         }
         
-        .ipa-toggle-btn {
-            width: 50px;
-            height: 50px;
+        .settings-btn {
+            width: 55px;
+            height: 55px;
             bottom: 20px;
             right: 20px;
-            font-size: 18px;
+            font-size: 24px;
+        }
+        
+        .settings-panel {
+            bottom: 85px;
+            right: 20px;
+            width: calc(100vw - 60px);
+            max-width: 280px;
         }
         
         ruby {
@@ -286,22 +1051,32 @@
             font-size: 0.7em;
             padding: 6px 10px;
         }
+        
+        /* Better table responsiveness on mobile */
+        .article-content table {
+            display: block;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .article-content table th,
+        .article-content table td {
+            padding: 8px 10px;
+            font-size: 0.9em;
+        }
+        
+        /* Better list spacing on mobile */
+        .article-content ul,
+        .article-content ol {
+            padding-left: 1.5em;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+<div style="margin-bottom: 20px;">
     <a href="{{ url_for('index') }}" style="color: #3498db; text-decoration: none;">← Quay lại danh sách</a>
-    
-    <!-- Nút xóa -->
-    <form action="{{ url_for('delete_article', article_id=article['id']) }}" method="POST" 
-          onsubmit="return confirm('Bạn có chắc muốn xóa bài viết này?');" style="display: inline-block;">
-        <button type="submit" 
-                style="padding: 8px 16px; background-color: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em;">
-            🗑️ Xóa bài viết
-        </button>
-    </form>
 </div>
 
 <div class="card">
@@ -390,15 +1165,101 @@
     </div>
 </div>
 
-<!-- IPA Toggle Button -->
-<button id="ipaToggle" class="ipa-toggle-btn" data-tooltip="Bật/Tắt IPA" onclick="toggleAllIPA()">
-    IPA
+<!-- Settings Button (Gear Icon) - BOTTOM RIGHT -->
+<button id="settingsBtn" class="settings-btn" onclick="toggleSettings()">
+    ⚙️
 </button>
+
+<!-- Focus Mode Button - BOTTOM LEFT -->
+<button id="focusModeBtn" class="focus-mode-btn" onclick="toggleFocusMode()" title="Focus Mode (Ctrl+F)">
+    🎯
+</button>
+
+<!-- Settings Panel -->
+<div id="settingsPanel" class="settings-panel">
+    <h3>⚙️ Cài đặt</h3>
+    
+    <!-- IPA Toggle -->
+    <div class="settings-section">
+        <div class="toggle-label">
+            <span class="settings-label">IPA (Phiên âm)</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="ipaToggle" checked onchange="toggleAllIPA()">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+    </div>
+    
+    <!-- Dark Mode Toggle -->
+    <div class="settings-section">
+        <div class="toggle-label">
+            <span class="settings-label">🌙 Dark Mode</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+    </div>
+    
+    <!-- Focus Mode Toggle -->
+    <div class="settings-section">
+        <div class="toggle-label">
+            <span class="settings-label">🎯 Focus Mode</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="focusModeToggle" onchange="toggleFocusMode()">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+    </div>
+    
+    <!-- Font Size Controls -->
+    <div class="settings-section">
+        <span class="settings-label">
+            📝 Kích thước chữ: <span class="font-size-value" id="fontSizeValue">100%</span>
+        </span>
+        <div class="settings-controls">
+            <button onclick="decreaseFontSize()">A-</button>
+            <button onclick="resetFontSize()">A</button>
+            <button onclick="increaseFontSize()">A+</button>
+        </div>
+    </div>
+    
+    <!-- Column Width Control (Bilingual Mode) -->
+    <div class="settings-section" id="columnWidthSection" style="display: none;">
+        <span class="settings-label">
+            📏 Độ rộng cột VN: <span class="font-size-value" id="columnWidthValue">50%</span>
+        </span>
+        <input type="range" id="columnWidthSlider" min="20" max="80" value="50" 
+               class="width-slider" oninput="adjustColumnWidth(this.value)">
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #999; margin-top: 5px;">
+            <span>20%</span>
+            <span>50%</span>
+            <span>80%</span>
+        </div>
+    </div>
+    
+    <!-- Delete Article Button -->
+    <div class="settings-section" style="border-top: 2px solid #e74c3c; padding-top: 15px; margin-top: 10px;">
+        <span class="settings-label" style="color: #e74c3c;">⚠️ Vùng nguy hiểm</span>
+        <form action="{{ url_for('delete_article', article_id=article['id']) }}" method="POST" 
+              onsubmit="return confirm('Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác!');" 
+              style="margin-top: 10px;">
+            <button type="submit" 
+                    style="width: 100%; padding: 12px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.2s;">
+                🗑️ Xóa bài viết
+            </button>
+        </form>
+    </div>
+</div>
 
 <script>
     let ipaEnabled = true;
     let isScrollSyncing = false;
     let activeRuby = null;
+    let currentFontSize = 100;
+    let settingsOpen = false;
+    let columnWidthPercent = 50; // Default 50-50 split
+    let lastScrollTop = { vi: 0, en: 0 }; // Track last scroll positions
     
     function switchLang(lang) {
         const url = new URL(window.location);
@@ -416,17 +1277,82 @@
         });
         event.target.classList.add('active');
         
-        // Setup synchronized scrolling for bilingual mode
+        // Show/hide column width control based on mode
+        const widthSection = document.getElementById('columnWidthSection');
         if (lang === 'both') {
+            widthSection.style.display = 'block';
             setupSyncScrolling();
             setupDividerDrag();
             alignBilingualContent();
+            applyColumnWidth(); // Apply saved width
+        } else {
+            widthSection.style.display = 'none';
         }
     }
     
+    // Column Width Adjustment
+    function adjustColumnWidth(value) {
+        columnWidthPercent = parseInt(value);
+        applyColumnWidth();
+        
+        // Save to localStorage
+        localStorage.setItem('columnWidth', columnWidthPercent);
+    }
+    
+    function applyColumnWidth() {
+        const container = document.querySelector('.bilingual-sync-container');
+        const display = document.getElementById('columnWidthValue');
+        
+        if (container && display) {
+            const leftPercent = columnWidthPercent;
+            const rightPercent = 100 - columnWidthPercent;
+            
+            // Ensure columns are visible
+            if (leftPercent < 20) columnWidthPercent = 20;
+            if (leftPercent > 80) columnWidthPercent = 80;
+            
+            const finalLeft = Math.max(20, Math.min(80, leftPercent));
+            const finalRight = 100 - finalLeft;
+            
+            container.style.gridTemplateColumns = `${finalLeft}% 4px ${finalRight}%`;
+            display.textContent = finalLeft + '%';
+            
+            // Update slider
+            const slider = document.getElementById('columnWidthSlider');
+            if (slider) {
+                slider.value = columnWidthPercent;
+            }
+        }
+    }
+    
+    // Settings Panel Toggle
+    function toggleSettings() {
+        settingsOpen = !settingsOpen;
+        const panel = document.getElementById('settingsPanel');
+        const btn = document.getElementById('settingsBtn');
+        
+        if (settingsOpen) {
+            panel.classList.add('show');
+            btn.classList.add('open');
+        } else {
+            panel.classList.remove('show');
+            btn.classList.remove('open');
+        }
+    }
+    
+    // Close settings when clicking outside
+    document.addEventListener('click', function(e) {
+        const panel = document.getElementById('settingsPanel');
+        const btn = document.getElementById('settingsBtn');
+        
+        if (settingsOpen && !panel.contains(e.target) && !btn.contains(e.target)) {
+            toggleSettings();
+        }
+    });
+    
     function toggleAllIPA() {
-        ipaEnabled = !ipaEnabled;
-        const toggleBtn = document.getElementById('ipaToggle');
+        const checkbox = document.getElementById('ipaToggle');
+        ipaEnabled = checkbox.checked;
         const allRuby = document.querySelectorAll('ruby');
         
         if (ipaEnabled) {
@@ -434,15 +1360,151 @@
                 ruby.classList.remove('ipa-hidden');
                 ruby.classList.remove('show-rt');
             });
-            toggleBtn.classList.remove('off');
-            toggleBtn.setAttribute('data-tooltip', 'Tắt IPA');
         } else {
             allRuby.forEach(ruby => {
                 ruby.classList.add('ipa-hidden');
                 ruby.classList.remove('show-rt');
             });
-            toggleBtn.classList.add('off');
-            toggleBtn.setAttribute('data-tooltip', 'Bật IPA');
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('ipaEnabled', ipaEnabled);
+    }
+    
+    // Dark Mode Toggle
+    function toggleDarkMode() {
+        const checkbox = document.getElementById('darkModeToggle');
+        const isDark = checkbox.checked;
+        
+        if (isDark) {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('darkMode', 'enabled');
+        } else {
+            document.body.classList.remove('dark-mode');
+            localStorage.setItem('darkMode', 'disabled');
+        }
+    }
+    
+    // Focus Mode Toggle - Quick access from button
+    function toggleFocusMode() {
+        const checkbox = document.getElementById('focusModeToggle');
+        const button = document.getElementById('focusModeBtn');
+        
+        // Toggle checkbox state
+        checkbox.checked = !checkbox.checked;
+        const isFocus = checkbox.checked;
+        
+        if (isFocus) {
+            document.body.classList.add('focus-mode');
+            button.classList.add('active');
+            button.textContent = '✅'; // Change icon when active
+            localStorage.setItem('focusMode', 'enabled');
+            
+            // Scroll to top of bilingual content
+            const viColumn = document.querySelector('.bilingual-vi');
+            const enColumn = document.querySelector('.bilingual-en');
+            if (viColumn) viColumn.scrollTop = 0;
+            if (enColumn) enColumn.scrollTop = 0;
+            
+            // Close settings panel after enabling focus mode
+            setTimeout(() => {
+                if (settingsOpen) {
+                    toggleSettings();
+                }
+            }, 300);
+        } else {
+            document.body.classList.remove('focus-mode');
+            button.classList.remove('active');
+            button.textContent = '🎯'; // Back to focus icon
+            localStorage.setItem('focusMode', 'disabled');
+        }
+    }
+    
+    // Font size control functions
+    function increaseFontSize() {
+        if (currentFontSize < 200) {
+            currentFontSize += 10;
+            applyFontSize();
+        }
+    }
+    
+    function decreaseFontSize() {
+        if (currentFontSize > 60) {
+            currentFontSize -= 10;
+            applyFontSize();
+        }
+    }
+    
+    function resetFontSize() {
+        currentFontSize = 100;
+        applyFontSize();
+    }
+    
+    function applyFontSize() {
+        const allContent = document.querySelectorAll('.article-content');
+        allContent.forEach(content => {
+            content.style.fontSize = (currentFontSize / 100) + 'em';
+        });
+        
+        // Update display
+        const value = document.getElementById('fontSizeValue');
+        value.textContent = currentFontSize + '%';
+        
+        // Save to localStorage
+        localStorage.setItem('articleFontSize', currentFontSize);
+        
+        // Re-align bilingual content if in bilingual mode
+        const currentLang = new URLSearchParams(window.location.search).get('lang');
+        if (currentLang === 'both') {
+            setTimeout(alignBilingualContent, 100);
+        }
+    }
+    
+    // Load saved settings on page load
+    function loadSettings() {
+        // Load font size
+        const savedFontSize = localStorage.getItem('articleFontSize');
+        if (savedFontSize) {
+            currentFontSize = parseInt(savedFontSize);
+            applyFontSize();
+        }
+        
+        // Load IPA setting
+        const savedIPA = localStorage.getItem('ipaEnabled');
+        if (savedIPA !== null) {
+            ipaEnabled = savedIPA === 'true';
+            document.getElementById('ipaToggle').checked = ipaEnabled;
+            if (!ipaEnabled) {
+                document.querySelectorAll('ruby').forEach(ruby => {
+                    ruby.classList.add('ipa-hidden');
+                });
+            }
+        }
+        
+        // Load dark mode
+        const savedDarkMode = localStorage.getItem('darkMode');
+        if (savedDarkMode === 'enabled') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('darkModeToggle').checked = true;
+        }
+        
+        // Load focus mode
+        const savedFocusMode = localStorage.getItem('focusMode');
+        const focusBtn = document.getElementById('focusModeBtn');
+        if (savedFocusMode === 'enabled') {
+            document.body.classList.add('focus-mode');
+            document.getElementById('focusModeToggle').checked = true;
+            if (focusBtn) {
+                focusBtn.classList.add('active');
+                focusBtn.textContent = '✅';
+            }
+        }
+        
+        // Load column width
+        const savedWidth = localStorage.getItem('columnWidth');
+        if (savedWidth) {
+            columnWidthPercent = parseInt(savedWidth);
+            document.getElementById('columnWidthSlider').value = columnWidthPercent;
         }
     }
     
@@ -487,41 +1549,33 @@
         }
     });
     
-    // Synchronized scrolling for bilingual mode
+    // Synchronized scrolling - English scrolls naturally, Vietnamese follows
     function setupSyncScrolling() {
         const viColumn = document.querySelector('.bilingual-vi');
         const enColumn = document.querySelector('.bilingual-en');
-        
+
         if (!viColumn || !enColumn) return;
-        
-        let viScrollTimeout, enScrollTimeout;
-        
-        viColumn.addEventListener('scroll', function() {
-            if (isScrollSyncing) return;
-            isScrollSyncing = true;
-            
-            clearTimeout(viScrollTimeout);
-            viScrollTimeout = setTimeout(() => {
-                const scrollPercentage = viColumn.scrollTop / (viColumn.scrollHeight - viColumn.clientHeight);
-                enColumn.scrollTop = scrollPercentage * (enColumn.scrollHeight - enColumn.clientHeight);
-                isScrollSyncing = false;
-            }, 10);
-        });
-        
+
+        // ONLY English has scroll listener - Vietnamese just follows
+        // This prevents conflict and makes scrolling smooth
         enColumn.addEventListener('scroll', function() {
             if (isScrollSyncing) return;
             isScrollSyncing = true;
+
+            // Calculate scroll percentage from English
+            const scrollPercentage = enColumn.scrollTop / (enColumn.scrollHeight - enColumn.clientHeight);
             
-            clearTimeout(enScrollTimeout);
-            enScrollTimeout = setTimeout(() => {
-                const scrollPercentage = enColumn.scrollTop / (enColumn.scrollHeight - enColumn.clientHeight);
-                viColumn.scrollTop = scrollPercentage * (viColumn.scrollHeight - viColumn.clientHeight);
+            // Apply to Vietnamese column
+            viColumn.scrollTop = scrollPercentage * (viColumn.scrollHeight - viColumn.clientHeight);
+            
+            // Release immediately for smooth scrolling
+            requestAnimationFrame(() => {
                 isScrollSyncing = false;
-            }, 10);
-        });
+            });
+        }, { passive: true });
     }
     
-    // Divider drag to resize columns
+    // Divider drag to resize columns - WITH TOUCH SUPPORT
     function setupDividerDrag() {
         const divider = document.getElementById('bilingualDivider');
         const container = document.querySelector('.bilingual-sync-container');
@@ -529,23 +1583,19 @@
         if (!divider || !container) return;
         
         let isDragging = false;
+        let startX = 0;
         
+        // Mouse events
         divider.addEventListener('mousedown', function(e) {
             isDragging = true;
+            startX = e.clientX;
             document.body.style.cursor = 'col-resize';
             e.preventDefault();
         });
         
         document.addEventListener('mousemove', function(e) {
             if (!isDragging) return;
-            
-            const containerRect = container.getBoundingClientRect();
-            const offsetX = e.clientX - containerRect.left;
-            const percentage = (offsetX / containerRect.width) * 100;
-            
-            if (percentage > 20 && percentage < 80) {
-                container.style.gridTemplateColumns = `${percentage}% 4px ${100 - percentage}%`;
-            }
+            handleDrag(e.clientX);
         });
         
         document.addEventListener('mouseup', function() {
@@ -554,6 +1604,41 @@
                 document.body.style.cursor = 'default';
             }
         });
+        
+        // Touch events for iPad/iPhone
+        divider.addEventListener('touchstart', function(e) {
+            isDragging = true;
+            startX = e.touches[0].clientX;
+            divider.style.background = 'linear-gradient(180deg, #2980b9 0%, #1a252f 100%)';
+            e.preventDefault();
+        }, { passive: false });
+        
+        document.addEventListener('touchmove', function(e) {
+            if (!isDragging) return;
+            handleDrag(e.touches[0].clientX);
+            e.preventDefault();
+        }, { passive: false });
+        
+        document.addEventListener('touchend', function() {
+            if (isDragging) {
+                isDragging = false;
+                divider.style.background = 'linear-gradient(180deg, #3498db 0%, #2c3e50 100%)';
+            }
+        });
+        
+        function handleDrag(clientX) {
+            const containerRect = container.getBoundingClientRect();
+            const offsetX = clientX - containerRect.left;
+            const percentage = Math.round((offsetX / containerRect.width) * 100);
+            
+            if (percentage >= 20 && percentage <= 80) {
+                columnWidthPercent = percentage;
+                applyColumnWidth();
+                
+                // Save to localStorage
+                localStorage.setItem('columnWidth', columnWidthPercent);
+            }
+        }
     }
     
     // Align bilingual content by matching paragraph heights
@@ -593,11 +1678,63 @@
     
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
+        // Load saved settings
+        loadSettings();
+        
         const currentLang = new URLSearchParams(window.location.search).get('lang') || 'both';
+        
+        // Show column width section if in bilingual mode
+        const widthSection = document.getElementById('columnWidthSection');
         if (currentLang === 'both') {
+            widthSection.style.display = 'block';
             setupSyncScrolling();
             setupDividerDrag();
-            setTimeout(alignBilingualContent, 100);
+            setTimeout(() => {
+                alignBilingualContent();
+                applyColumnWidth();
+            }, 100);
+        } else {
+            widthSection.style.display = 'none';
+        }
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + Plus: Increase font size
+        if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=')) {
+            e.preventDefault();
+            increaseFontSize();
+        }
+        // Ctrl/Cmd + Minus: Decrease font size
+        if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+            e.preventDefault();
+            decreaseFontSize();
+        }
+        // Ctrl/Cmd + 0: Reset font size
+        if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+            e.preventDefault();
+            resetFontSize();
+        }
+        // Ctrl/Cmd + D: Toggle dark mode
+        if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+            e.preventDefault();
+            const checkbox = document.getElementById('darkModeToggle');
+            checkbox.checked = !checkbox.checked;
+            toggleDarkMode();
+        }
+        // Ctrl/Cmd + F: Toggle focus mode
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            const checkbox = document.getElementById('focusModeToggle');
+            checkbox.checked = !checkbox.checked;
+            toggleFocusMode();
+        }
+        // Ctrl/Cmd + I: Toggle IPA
+        if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+            e.preventDefault();
+            const checkbox = document.getElementById('ipaToggle');
+            checkbox.checked = !checkbox.checked;
+            toggleAllIPA();
         }
     });
 </script>

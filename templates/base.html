@@ -198,6 +198,51 @@
             color: white;
             margin-top: 40px;
         }
+        
+        /* Dark Mode Support */
+        body.dark-mode {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode header {
+            background-color: #1a252f;
+        }
+        
+        body.dark-mode nav a {
+            background-color: #2c3e50;
+        }
+        
+        body.dark-mode nav a:hover {
+            background-color: #34495e;
+        }
+        
+        body.dark-mode .container {
+            background-color: transparent;
+        }
+        
+        body.dark-mode .card {
+            background: #2c2c2c;
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode .lang-btn {
+            background-color: #3c3c3c;
+            color: #e0e0e0;
+            border-color: #555;
+        }
+        
+        body.dark-mode .lang-btn:hover {
+            background-color: #2c3e50;
+        }
+        
+        body.dark-mode .lang-btn.active {
+            background-color: #2c3e50;
+        }
+        
+        body.dark-mode footer {
+            background-color: #1a252f;
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
