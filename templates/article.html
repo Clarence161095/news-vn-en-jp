@@ -827,19 +827,24 @@
         overflow-wrap: break-word;
         white-space: normal;
         max-width: 100%;
-        overflow-x: auto;
+        overflow-x: hidden;
     }
     
     .bilingual-en .bilingual-content {
         max-width: 100%;
         overflow-wrap: break-word;
-        word-break: break-word;
+        word-break: normal;
+        hyphens: auto;
+        -webkit-hyphens: auto;
+        -ms-hyphens: auto;
     }
     
     .bilingual-en .bilingual-content * {
         max-width: 100% !important;
         overflow-wrap: break-word !important;
-        word-break: break-word !important;
+        word-break: normal !important;
+        hyphens: auto !important;
+        -webkit-hyphens: auto !important;
     }
     
     .bilingual-divider {
@@ -890,6 +895,9 @@
         word-wrap: break-word;
         overflow-wrap: break-word;
         white-space: normal;
+        hyphens: auto;
+        -webkit-hyphens: auto;
+        -ms-hyphens: auto;
     }
     
     .bilingual-content h1,
@@ -905,7 +913,8 @@
     /* Apply font size transition to bilingual content */
     .bilingual-content {
         transition: font-size 0.3s ease;
-        width: 100%;
+        width: auto;
+        max-width: 100%;
         word-wrap: break-word;
         overflow-wrap: break-word;
         white-space: normal;
@@ -1283,8 +1292,18 @@
             widthSection.style.display = 'block';
             setupSyncScrolling();
             setupDividerDrag();
-            alignBilingualContent();
-            applyColumnWidth(); // Apply saved width
+            
+            // Apply column width immediately
+            setTimeout(() => {
+                alignBilingualContent();
+                applyColumnWidth();
+                
+                // Force apply 95% to English content
+                const enContent = document.querySelector('.bilingual-en .bilingual-content');
+                if (enContent) {
+                    enContent.style.setProperty('max-width', '95%', 'important');
+                }
+            }, 50);
         } else {
             widthSection.style.display = 'none';
         }
@@ -1302,6 +1321,8 @@
     function applyColumnWidth() {
         const container = document.querySelector('.bilingual-sync-container');
         const display = document.getElementById('columnWidthValue');
+        const viColumn = document.querySelector('.bilingual-vi');
+        const enColumn = document.querySelector('.bilingual-en');
         
         if (container && display) {
             const leftPercent = columnWidthPercent;
@@ -1314,14 +1335,56 @@
             const finalLeft = Math.max(20, Math.min(80, leftPercent));
             const finalRight = 100 - finalLeft;
             
-            container.style.gridTemplateColumns = `${finalLeft}% 4px ${finalRight}%`;
+            // Get actual container width in pixels
+            const containerRect = container.getBoundingClientRect();
+            const containerWidthPx = containerRect.width;
+            
+            // Calculate column widths in pixels first
+            const dividerWidthPx = 4;
+            const availableWidth = containerWidthPx - dividerWidthPx;
+            
+            const leftPx = (availableWidth * finalLeft / 100);
+            const rightPx = (availableWidth * finalRight / 100);
+            
+            // Convert to vw for responsive
+            const leftVw = (leftPx / window.innerWidth) * 100;
+            const rightVw = (rightPx / window.innerWidth) * 100;
+            
+            // Apply to container using calculated vw
+            container.style.gridTemplateColumns = `${leftVw}vw ${dividerWidthPx}px ${rightVw}vw`;
             display.textContent = finalLeft + '%';
+            
+            // Force recalculation of child components
+            if (viColumn) {
+                viColumn.style.width = '100%';
+                viColumn.style.maxWidth = '100%';
+                const viContent = viColumn.querySelector('.bilingual-content');
+                if (viContent) {
+                    viContent.style.width = 'auto';
+                    viContent.style.maxWidth = '100%';
+                    viContent.style.setProperty('max-width', '100%', 'important');
+                }
+            }
+            
+            if (enColumn) {
+                enColumn.style.width = '100%';
+                enColumn.style.maxWidth = '100%';
+                const enContent = enColumn.querySelector('.bilingual-content');
+                if (enContent) {
+                    enContent.style.width = 'auto';
+                    enContent.style.setProperty('max-width', '93%', 'important'); // Force 95% for English
+                }
+            }
             
             // Update slider
             const slider = document.getElementById('columnWidthSlider');
             if (slider) {
                 slider.value = columnWidthPercent;
             }
+            
+            // Trigger reflow to ensure layout recalculation
+            if (viColumn) void viColumn.offsetHeight;
+            if (enColumn) void enColumn.offsetHeight;
         }
     }
     
@@ -1696,6 +1759,19 @@
         } else {
             widthSection.style.display = 'none';
         }
+    });
+    
+    // Recalculate on window resize for responsive vw
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            const currentLang = new URLSearchParams(window.location.search).get('lang') || 'both';
+            if (currentLang === 'both') {
+                applyColumnWidth();
+                alignBilingualContent();
+            }
+        }, 250);
     });
     
     // Keyboard shortcuts
