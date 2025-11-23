@@ -1372,7 +1372,7 @@
                 const enContent = enColumn.querySelector('.bilingual-content');
                 if (enContent) {
                     enContent.style.width = 'auto';
-                    enContent.style.setProperty('max-width', '93%', 'important'); // Force 95% for English
+                    enContent.style.setProperty('max-width', '100%', 'important'); // Force 95% for English
                 }
             }
             
@@ -1461,7 +1461,7 @@
             document.body.classList.add('focus-mode');
             button.classList.add('active');
             button.textContent = '✅'; // Change icon when active
-            localStorage.setItem('focusMode', 'enabled');
+            // DO NOT save to localStorage - focus mode should not persist
             
             // Scroll to top of bilingual content
             const viColumn = document.querySelector('.bilingual-vi');
@@ -1479,7 +1479,8 @@
             document.body.classList.remove('focus-mode');
             button.classList.remove('active');
             button.textContent = '🎯'; // Back to focus icon
-            localStorage.setItem('focusMode', 'disabled');
+            // Remove from localStorage if it was saved
+            localStorage.removeItem('focusMode');
         }
     }
     
@@ -1551,16 +1552,14 @@
             document.getElementById('darkModeToggle').checked = true;
         }
         
-        // Load focus mode
-        const savedFocusMode = localStorage.getItem('focusMode');
+        // DO NOT load focus mode from localStorage - always start with focus mode OFF
+        // User must manually enable it each time to avoid conflicts
+        document.getElementById('focusModeToggle').checked = false;
+        document.body.classList.remove('focus-mode');
         const focusBtn = document.getElementById('focusModeBtn');
-        if (savedFocusMode === 'enabled') {
-            document.body.classList.add('focus-mode');
-            document.getElementById('focusModeToggle').checked = true;
-            if (focusBtn) {
-                focusBtn.classList.add('active');
-                focusBtn.textContent = '✅';
-            }
+        if (focusBtn) {
+            focusBtn.classList.remove('active');
+            focusBtn.textContent = '🎯';
         }
         
         // Load column width

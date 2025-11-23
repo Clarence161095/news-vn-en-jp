@@ -73,22 +73,34 @@ def generate_ipa_html(text):
     """
     Tự động chuyển đổi văn bản tiếng Anh sang HTML với IPA trong ruby tags
     OPTIMIZED: Cache IPA lookups, batch processing
+    IMPROVED: Preserve table and list formatting
     """
     if not IPA_AVAILABLE or not text:
         return text
     
     try:
         # Tách thành các đoạn HTML và text - optimize với compiled regex
-        html_parts = re.split(r'(<[^>]+>)', text)
+        # Preserve complete HTML blocks (tables, lists, etc.)
+        html_parts = re.split(r'(<(?:table|tr|td|th|ul|ol|li|div|p|h[1-6])[^>]*>.*?</(?:table|tr|td|th|ul|ol|li|div|p|h[1-6])>|<[^>]+>)', text, flags=re.DOTALL)
         result = []
         
         # Cache IPA trong scope của function để tránh lookup trùng lặp
         ipa_cache = {}
         
         for part in html_parts:
-            # Nếu là HTML tag, giữ nguyên
+            if not part:
+                continue
+                
+            # Nếu là HTML tag hoặc HTML block, giữ nguyên structure nhưng process text bên trong
             if part.startswith('<'):
-                result.append(part)
+                # Check if it's a complete HTML block (table, list, etc.)
+                if re.match(r'<(?:table|ul|ol)', part):
+                    # For tables and lists, preserve structure but process text in cells/items
+                    processed_block = process_html_block(part, ipa_cache)
+                    result.append(processed_block)
+                else:
+                    # Simple tag, keep as is
+                    result.append(part)
             else:
                 # Xử lý text: tách thành từng từ
                 words = re.findall(r'\b[\w\']+\b|[^\w\s]|\s+', part)
@@ -118,6 +130,55 @@ def generate_ipa_html(text):
     except Exception as e:
         print(f"Error generating IPA: {e}")
         return text
+
+
+def process_html_block(html_block, ipa_cache):
+    """
+    Process HTML blocks (tables, lists) while preserving structure
+    """
+    try:
+        # Extract text content from tags and process them
+        def replace_text_content(match):
+            tag = match.group(1)
+            content = match.group(2)
+            closing = match.group(3)
+            
+            # Skip if content is empty or only whitespace
+            if not content or content.isspace():
+                return match.group(0)
+            
+            # Process text content with IPA
+            words = re.findall(r'\b[\w\']+\b|[^\w\s]|\s+', content)
+            processed = []
+            
+            for word in words:
+                if re.match(r'\b[\w\']+\b', word):
+                    word_lower = word.lower()
+                    if word_lower in ipa_cache:
+                        ipa_text = ipa_cache[word_lower]
+                    else:
+                        try:
+                            ipa_text = ipa.convert(word)
+                            ipa_cache[word_lower] = ipa_text
+                        except:
+                            ipa_text = None
+                    
+                    if ipa_text and ipa_text != word:
+                        processed.append(f'<ruby>{word}<rt>{ipa_text}</rt></ruby>')
+                    else:
+                        processed.append(word)
+                else:
+                    processed.append(word)
+            
+            return tag + ''.join(processed) + closing
+        
+        # Process content inside td, th, li tags
+        pattern = r'(<(?:td|th|li)[^>]*>)(.*?)(</(?:td|th|li)>)'
+        result = re.sub(pattern, replace_text_content, html_block, flags=re.DOTALL)
+        
+        return result
+    except:
+        return html_block
 
 # ==================== XỬ LÝ BÀI VIẾT ====================
 def process_article_content(article):
