@@ -108,7 +108,7 @@ def generate_ipa_html(text):
                         
                         # Chỉ thêm ruby tag nếu có IPA
                         if ipa_text and ipa_text != word:
-                            result.append(f'<ruby>{word}<rt>/{ipa_text}/</rt></ruby>')
+                            result.append(f'<ruby>{word}<rt>{ipa_text}</rt></ruby>')
                         else:
                             result.append(word)
                     else:

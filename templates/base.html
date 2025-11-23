@@ -140,6 +140,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
+            align-items: start;
         }
         
         .bilingual-container .lang-column {
@@ -155,13 +156,32 @@
             padding-bottom: 5px;
         }
         
+        .bilingual-container .lang-column p,
+        .bilingual-container .lang-column h1,
+        .bilingual-container .lang-column h2,
+        .bilingual-container .lang-column h3,
+        .bilingual-container .lang-column h4 {
+            min-height: fit-content;
+        }
+        
         @media (max-width: 768px) {
             .bilingual-container {
                 grid-template-columns: 1fr;
+                gap: 20px;
             }
             
             #content-all > div {
                 grid-template-columns: 1fr !important;
+            }
+            
+            .lang-selector {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .lang-btn {
+                width: 100%;
+                padding: 12px 20px;
             }
         }
         
