@@ -10,7 +10,7 @@
 <div class="card">
     <h2 style="color: #2c3e50; margin-bottom: 20px;">📥 Import Bài Viết từ JSON</h2>
     
-    <form method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+    <form method="POST" id="importForm" style="display: flex; flex-direction: column; gap: 15px;">
         <div>
             <label for="json_data" style="display: block; margin-bottom: 10px; font-weight: bold;">
                 Dán JSON của bạn vào đây:
@@ -37,6 +37,9 @@ Hoặc import nhiều bài viết:
             ></textarea>
         </div>
         
+        <!-- Hidden input for username -->
+        <input type="hidden" name="username" id="usernameInput" value="">
+        
         <button 
             type="submit" 
             style="padding: 15px 30px; background-color: #2ecc71; color: white; border: none; border-radius: 5px; font-size: 1.1em; cursor: pointer; transition: background-color 0.3s;"
@@ -46,6 +49,48 @@ Hoặc import nhiều bài viết:
             ✅ Import Bài Viết
         </button>
     </form>
+    
+    <script>
+        // FORCE username check and auto-fill before form submit
+        document.getElementById('importForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // STOP form submission first
+            
+            // Get username directly from localStorage (more reliable)
+            const username = localStorage.getItem('username');
+            
+            console.log('📤 Form submit - checking username...');
+            console.log('👤 Username from localStorage:', username);
+            
+            if (!username || username.trim() === '') {
+                console.log('❌ NO USERNAME - blocking import');
+                alert('⚠️ BẮT BUỘC: Bạn PHẢI đặt tên người dùng trước khi import!\n\n' +
+                      'Bài viết sẽ không có category của bạn và bạn sẽ không thể xóa được.\n\n' +
+                      '👉 Nhấn vào biểu tượng 👤 ở góc trên để đặt tên.');
+                return false; // BLOCK submission
+            }
+            
+            // Set username to hidden input
+            document.getElementById('usernameInput').value = username.trim();
+            console.log('✅ Set hidden input value:', document.getElementById('usernameInput').value);
+            console.log('✅ Submitting form with username:', username);
+            
+            // NOW submit the form
+            e.target.submit();
+        });
+        
+        // Also show username reminder on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const username = localStorage.getItem('username');
+            if (!username || username.trim() === '') {
+                const reminder = document.createElement('div');
+                reminder.style = 'position: fixed; top: 80px; right: 20px; background: #ff9800; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); z-index: 1000; max-width: 300px;';
+                reminder.innerHTML = '⚠️ <strong>Chưa có username!</strong><br>Vui lòng đặt tên trước khi import.';
+                document.body.appendChild(reminder);
+                
+                setTimeout(() => reminder.remove(), 5000);
+            }
+        });
+    </script>
     
     <div style="margin-top: 30px; padding: 20px; background-color: #f9f9f9; border-radius: 5px;">
         <h3 style="color: #2c3e50; margin-bottom: 15px;">📖 Hướng dẫn định dạng JSON:</h3>

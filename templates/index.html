@@ -267,7 +267,7 @@
                 </button>
             </div>
             
-            <div style="margin-top: 8px; display: flex; gap: 15px; align-items: center;">
+            <div style="margin-top: 8px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
                 <label class="filter-checkbox">
                     <input type="checkbox" name="regex" value="true" {% if use_regex %}checked{% endif %}>
                     <span style="font-size: 13px;">🔧 Sử dụng Regex</span>
@@ -276,6 +276,11 @@
                 <label class="filter-checkbox">
                     <input type="checkbox" name="favorites" value="true" {% if favorites_only %}checked{% endif %}>
                     <span style="font-size: 13px;">❤️ Chỉ xem yêu thích</span>
+                </label>
+                
+                <label class="filter-checkbox" id="myArticlesCheckbox" style="display: none;">
+                    <input type="checkbox" name="my_articles" id="myArticlesInput" value="true">
+                    <span style="font-size: 13px;">👤 <strong>Bài viết của tôi</strong></span>
                 </label>
             </div>
         </div>
@@ -301,11 +306,40 @@
                 
                 <!-- Category Dropdown Menu -->
                 <div id="categoryDropdown" 
-                     style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #667eea; border-radius: 8px; margin-top: 5px; max-height: 250px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                    <div id="categoryList" style="padding: 5px;"></div>
+                     style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #667eea; border-radius: 8px; margin-top: 5px; max-height: 350px; overflow: hidden; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                    
+                    <!-- Header with Filter & Refresh -->
+                    <div style="padding: 10px; border-bottom: 2px solid #eee; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                            <!-- Filter Input -->
+                            <input type="text" 
+                                   id="categoryFilterInput" 
+                                   placeholder="🔍 Gõ để lọc categories..."
+                                   oninput="filterCategoryList()"
+                                   style="flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
+                            
+                            <!-- Refresh Button -->
+                            <button type="button"
+                                    onclick="cleanupUnusedCategories()"
+                                    title="Xóa categories không còn được sử dụng"
+                                    style="padding: 8px 12px; background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; transition: transform 0.2s;"
+                                    onmouseover="this.style.transform='rotate(180deg)'"
+                                    onmouseout="this.style.transform='rotate(0deg)'">
+                                🔄
+                            </button>
+                        </div>
+                        <p style="margin: 0; font-size: 11px; color: #666;">
+                            💡 Gõ để tìm nhanh • Click 🔄 để dọn dẹp
+                        </p>
+                    </div>
+                    
+                    <!-- Category List -->
+                    <div id="categoryList" style="padding: 5px; max-height: 200px; overflow-y: auto;"></div>
+                    
+                    <!-- Footer -->
                     <div style="padding: 10px; border-top: 1px solid #eee; background: #f8f9fa;">
                         <p style="margin: 0; font-size: 12px; color: #888; text-align: center;">
-                            💡 Chọn nhiều categories để lọc
+                            <span id="categoryCountInfo">0</span> categories
                         </p>
                     </div>
                 </div>
@@ -372,13 +406,14 @@
                 🌍 Song Ngữ
             </a>
             
-            <form action="{{ url_for('delete_article', article_id=article['id']) }}" method="POST" 
-                  onsubmit="return confirm('Bạn có chắc muốn xóa bài viết này?');" style="display: inline-block; margin-left: auto;">
-                <button type="submit" 
-                        style="padding: 10px 16px; background-color: #c0392b; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.95em; font-weight: 500;">
-                    🗑️ Xóa
-                </button>
-            </form>
+            <!-- Delete Button - Only show if user owns this article -->
+            <button type="button" 
+                    class="delete-article-btn"
+                    data-article-id="{{ article['id'] }}"
+                    onclick="deleteArticleFromHomepage({{ article['id'] }})"
+                    style="display: none; padding: 10px 16px; background-color: #c0392b; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.95em; font-weight: 500; margin-left: auto;">
+                🗑️ Xóa
+            </button>
         </div>
     </div>
     {% endfor %}
@@ -419,17 +454,30 @@
         }
     }
     
-    // Display all categories as checkboxes
-    function displayCategoryList() {
+    // Display all categories as checkboxes (with optional filter)
+    function displayCategoryList(filterQuery = '') {
         const container = document.getElementById('categoryList');
+        const countInfo = document.getElementById('categoryCountInfo');
         if (!container) return;
         
         if (allCategories.length === 0) {
             container.innerHTML = '<p style="padding: 15px; text-align: center; color: #888; font-size: 13px;">Chưa có category nào. Tạo category trong bài viết!</p>';
+            if (countInfo) countInfo.textContent = '0';
             return;
         }
         
-        container.innerHTML = allCategories.map(c => {
+        // Filter categories based on search query
+        const filtered = allCategories.filter(c => 
+            c.name.toLowerCase().includes(filterQuery.toLowerCase())
+        );
+        
+        if (filtered.length === 0) {
+            container.innerHTML = '<p style="padding: 15px; text-align: center; color: #888; font-size: 13px;">❌ Không tìm thấy category phù hợp</p>';
+            if (countInfo) countInfo.textContent = '0';
+            return;
+        }
+        
+        container.innerHTML = filtered.map(c => {
             const catName = c.name;
             const isSelected = selectedCategories.includes(catName);
             return `
@@ -446,6 +494,19 @@
                 </label>
             `;
         }).join('');
+        
+        if (countInfo) {
+            countInfo.textContent = filtered.length < allCategories.length 
+                ? `${filtered.length}/${allCategories.length}` 
+                : allCategories.length;
+        }
+    }
+    
+    // Filter category list based on search input
+    function filterCategoryList() {
+        const input = document.getElementById('categoryFilterInput');
+        const query = input ? input.value.trim() : '';
+        displayCategoryList(query);
     }
     
     // Toggle category selection
@@ -507,6 +568,48 @@
         }
     });
     
+    // Cleanup unused categories
+    async function cleanupUnusedCategories() {
+        if (!confirm('🧹 Xóa tất cả categories không còn được sử dụng?\n\nHành động này không thể hoàn tác.')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/categories/cleanup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Show detailed message with stats
+                let message = data.message;
+                if (data.stats) {
+                    message += `\n\n📊 Thống kê:\n`;
+                    message += `• Categories trước: ${data.stats.before}\n`;
+                    message += `• Categories sau: ${data.stats.after}\n`;
+                    message += `• Tổng liên kết: ${data.stats.total_links}`;
+                }
+                
+                alert(message);
+                
+                // Reload page to refresh category list
+                if (data.deleted_count > 0) {
+                    window.location.reload();
+                }
+            } else {
+                alert('Lỗi: ' + (data.error || 'Không thể xóa categories'));
+                console.error('Cleanup error:', data);
+            }
+        } catch (error) {
+            console.error('Failed to cleanup categories:', error);
+            alert('Lỗi khi xóa categories: ' + error.message);
+        }
+    }
+    
     // Initialize on page load
     updateCategoryTags();
     
@@ -528,17 +631,182 @@
     }
     
     // Load categories for all articles
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
+        const username = getUsername();
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentCategories = urlParams.getAll('categories');
+        
+        // Show "My Articles" checkbox if username is set
+        if (username) {
+            const checkbox = document.getElementById('myArticlesCheckbox');
+            checkbox.style.display = 'flex';
+            
+            // Update label with username
+            const label = checkbox.querySelector('span');
+            label.innerHTML = `👤 <strong>Bài viết của ${username}</strong>`;
+            
+            // Auto-check if currently filtering by username
+            if (currentCategories.includes(username)) {
+                document.getElementById('myArticlesInput').checked = true;
+            }
+        }
+        
+        // Auto-filter by current username if:
+        // 1. Username is set
+        // 2. No manual category filter applied
+        // 3. Not explicitly cleared (no 'noclear' param)
+        // 4. "My Articles" checkbox not explicitly unchecked
+        if (username && currentCategories.length === 0 && !urlParams.has('noclear')) {
+            console.log(`🎯 Auto-filtering by username: ${username}`);
+            
+            // Redirect with username category filter
+            urlParams.append('categories', username);
+            window.location.search = urlParams.toString();
+            return; // Stop execution, page will reload
+        }
+        
+        // Load categories for all articles
         {% for article in articles %}
         loadArticleCategories({{ article['id'] }});
         {% endfor %}
+        
+        // Load user favorites and update UI
+        if (username) {
+            await loadUserFavorites(username);
+            
+            // Show delete buttons for articles owned by user
+            await showDeleteButtonsForUserArticles(username);
+        }
     });
     
-    // Toggle favorite
+    // Handle "My Articles" checkbox change
+    document.getElementById('myArticlesInput')?.addEventListener('change', function(e) {
+        const username = getUsername();
+        if (!username) return;
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentCategories = urlParams.getAll('categories');
+        
+        if (e.target.checked) {
+            // Add username to categories if not already there
+            if (!currentCategories.includes(username)) {
+                urlParams.append('categories', username);
+            }
+        } else {
+            // Remove username from categories
+            urlParams.delete('categories');
+            currentCategories.filter(c => c !== username).forEach(cat => {
+                urlParams.append('categories', cat);
+            });
+            
+            // Add noclear to prevent auto-filter
+            urlParams.set('noclear', '1');
+        }
+        
+        // Submit form to apply filter
+        window.location.search = urlParams.toString();
+    });
+    
+    // Load user favorites and update heart icons
+    async function loadUserFavorites(username) {
+        try {
+            const response = await fetch(`/api/user/${encodeURIComponent(username)}/favorites`);
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update all favorite buttons
+                data.favorite_ids.forEach(articleId => {
+                    const button = document.querySelector(`button[onclick*="toggleFavorite(${articleId}"]`);
+                    if (button) {
+                        button.textContent = '❤️';
+                        button.classList.add('is-favorite');
+                        button.title = 'Bỏ yêu thích';
+                    }
+                });
+                
+                console.log(`✅ Loaded ${data.favorite_ids.length} favorites for ${username}`);
+            }
+        } catch (error) {
+            console.error('Failed to load user favorites:', error);
+        }
+    }
+    
+    // Show delete buttons for articles owned by current user
+    async function showDeleteButtonsForUserArticles(username) {
+        try {
+            // Get all article cards
+            const deleteButtons = document.querySelectorAll('.delete-article-btn');
+            
+            for (const btn of deleteButtons) {
+                const articleId = btn.getAttribute('data-article-id');
+                
+                // Get article categories
+                const response = await fetch(`/api/article/${articleId}/categories`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const categories = data.categories.map(c => c.name);
+                    
+                    // Show delete button if article has username category
+                    if (categories.includes(username)) {
+                        btn.style.display = 'inline-block';
+                        console.log(`✅ Show delete button for article ${articleId} (owned by ${username})`);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to check article ownership:', error);
+        }
+    }
+    
+    // Delete article from homepage
+    async function deleteArticleFromHomepage(articleId) {
+        const username = getUsername();
+        
+        if (!username) {
+            alert('⚠️ Vui lòng đặt tên người dùng trước!');
+            return;
+        }
+        
+        if (!confirm('Bạn có chắc chắn muốn xóa bài viết này?\n\n⚠️ Hành động này không thể hoàn tác!')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/article/delete/${articleId}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: username})
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert(data.message || '✅ Bài viết đã được xóa!');
+                window.location.reload();
+            } else {
+                alert(data.error || '❌ Không thể xóa bài viết');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            alert('❌ Lỗi khi xóa bài viết: ' + error.message);
+        }
+    }
+    
+    // Toggle favorite with auto-add username category
     async function toggleFavorite(articleId, button) {
         try {
+            // Check if username is set
+            const username = getUsername();
+            if (!username) {
+                alert('⚠️ Vui lòng đặt tên người dùng trước!\n\nClick vào "👤 Chưa đặt tên" ở header để đặt tên.');
+                return;
+            }
+            
             const response = await fetch(`/api/article/${articleId}/favorite`, {
-                method: 'POST'
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: username})
             });
             
             const data = await response.json();
@@ -549,8 +817,14 @@
                 
                 if (data.is_favorite) {
                     button.classList.add('is-favorite');
+                    
+                    // Auto-add username as category (6th category, separate from normal 5 categories)
+                    await addUsernameCategoryToArticle(articleId, username);
                 } else {
                     button.classList.remove('is-favorite');
+                    
+                    // Optionally remove username category when unfavorite
+                    // await removeUsernameCategoryFromArticle(articleId, username);
                 }
                 
                 // Show notification
@@ -559,6 +833,35 @@
         } catch (error) {
             console.error('Failed to toggle favorite:', error);
             showNotification('❌ Lỗi khi cập nhật yêu thích');
+        }
+    }
+    
+    // Add username as special category (6th category)
+    async function addUsernameCategoryToArticle(articleId, username) {
+        try {
+            // Get current categories
+            const response = await fetch(`/api/article/${articleId}/categories`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const currentCategories = data.categories.map(c => c.name);
+                
+                // Add username if not already exists
+                if (!currentCategories.includes(username)) {
+                    currentCategories.push(username);
+                    
+                    // Update categories
+                    await fetch(`/api/article/${articleId}/categories`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({categories: currentCategories})
+                    });
+                    
+                    console.log(`✅ Added username category: ${username}`);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to add username category:', error);
         }
     }
     

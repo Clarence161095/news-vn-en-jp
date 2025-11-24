@@ -253,9 +253,43 @@
             <nav>
                 <a href="{{ url_for('index') }}">Trang Chủ</a>
                 <a href="{{ url_for('import_articles') }}">Import JSON</a>
+                <span id="userProfileDisplay" style="margin-left: 20px; padding: 8px 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; cursor: pointer;" onclick="showUserProfileModal()">
+                    <span id="usernameText">👤 Chưa đặt tên</span>
+                </span>
             </nav>
         </div>
     </header>
+    
+    <!-- User Profile Modal -->
+    <div id="userProfileModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <h2 style="margin-bottom: 20px; color: #2c3e50; text-align: center;">
+                👤 Đặt tên người dùng
+            </h2>
+            <p style="margin-bottom: 20px; color: #666; text-align: center;">
+                Chọn từ danh sách hoặc nhập tên mới
+            </p>
+            
+            <!-- Existing categories selection -->
+            <div id="existingUsernames" style="margin-bottom: 15px; max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 10px; display: none;">
+                <!-- Will be populated via JS -->
+            </div>
+            
+            <!-- New username input -->
+            <input type="text" id="usernameInput" placeholder="Nhập tên của bạn..." 
+                   style="width: 100%; padding: 12px; border: 2px solid #667eea; border-radius: 8px; font-size: 16px; margin-bottom: 20px;"
+                   onkeypress="if(event.key==='Enter'){saveUsername()}">
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="saveUsername()" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">
+                    ✅ Lưu
+                </button>
+                <button onclick="hideUserProfileModal()" style="flex: 1; padding: 12px; background: #e0e0e0; color: #333; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">
+                    ❌ Hủy
+                </button>
+            </div>
+        </div>
+    </div>
     
     <div class="container">
         {% block content %}{% endblock %}
@@ -264,6 +298,108 @@
     <footer>
         <p>&copy; 2025 Đọc Báo Song Ngữ - Việt - Anh - Nhật</p>
     </footer>
+    
+    <script>
+        // User Profile Management
+        function getUsername() {
+            return localStorage.getItem('username') || '';
+        }
+        
+        function setUsername(name) {
+            localStorage.setItem('username', name.trim());
+            updateUsernameDisplay();
+        }
+        
+        function updateUsernameDisplay() {
+            const username = getUsername();
+            const displayEl = document.getElementById('usernameText');
+            if (displayEl) {
+                displayEl.textContent = username ? `👤 ${username}` : '👤 Chưa đặt tên';
+            }
+        }
+        
+        function showUserProfileModal() {
+            const modal = document.getElementById('userProfileModal');
+            const input = document.getElementById('usernameInput');
+            const existingDiv = document.getElementById('existingUsernames');
+            
+            if (modal) {
+                modal.style.display = 'flex';
+                
+                // Load existing categories/usernames
+                loadExistingUsernames();
+                
+                // Pre-fill current username
+                input.value = getUsername();
+                input.focus();
+            }
+        }
+        
+        function hideUserProfileModal() {
+            const modal = document.getElementById('userProfileModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        async function loadExistingUsernames() {
+            try {
+                const response = await fetch('/api/categories');
+                const data = await response.json();
+                
+                if (data.success && data.categories.length > 0) {
+                    const container = document.getElementById('existingUsernames');
+                    container.style.display = 'block';
+                    container.innerHTML = '<div style="font-size: 12px; color: #666; margin-bottom: 8px; font-weight: bold;">📁 Chọn từ danh sách:</div>';
+                    
+                    data.categories.forEach(cat => {
+                        const btn = document.createElement('div');
+                        btn.textContent = cat.name;
+                        btn.style.cssText = 'padding: 8px 12px; margin: 4px 0; background: #f0f0f0; border-radius: 6px; cursor: pointer; transition: background 0.2s;';
+                        btn.onmouseover = () => btn.style.background = '#e0e0e0';
+                        btn.onmouseout = () => btn.style.background = '#f0f0f0';
+                        btn.onclick = () => {
+                            document.getElementById('usernameInput').value = cat.name;
+                        };
+                        container.appendChild(btn);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load categories:', error);
+            }
+        }
+        
+        function saveUsername() {
+            const input = document.getElementById('usernameInput');
+            const name = input.value.trim();
+            
+            if (!name) {
+                alert('Vui lòng nhập tên!');
+                return;
+            }
+            
+            setUsername(name);
+            hideUserProfileModal();
+            alert(`✅ Đã lưu tên: ${name}`);
+        }
+        
+        // Check if username exists on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUsernameDisplay();
+            
+            // Show modal if no username set (only on first visit)
+            if (!getUsername()) {
+                setTimeout(showUserProfileModal, 500);
+            }
+        });
+        
+        // Close modal when clicking outside
+        document.getElementById('userProfileModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideUserProfileModal();
+            }
+        });
+    </script>
     
     {% block extra_js %}{% endblock %}
 </body>

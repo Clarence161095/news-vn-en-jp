@@ -17,6 +17,7 @@ import sqlite3
 import json
 from datetime import datetime, timedelta
 import re
+from import_logic import add_categories_to_article
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-this-in-production-2024'
@@ -47,10 +48,18 @@ def init_db():
             content_en TEXT,
             category TEXT,
             is_favorite INTEGER DEFAULT 0,
+            created_by TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    
+    # Migration: Add created_by column if not exists
+    try:
+        c.execute('ALTER TABLE articles ADD COLUMN created_by TEXT')
+        print("✅ Added created_by column to articles table")
+    except sqlite3.OperationalError:
+        pass  # Column already exists
     
     # Article cache table - Lưu processed content (IPA) vào DB
     c.execute('''
@@ -83,7 +92,18 @@ def init_db():
         )
     ''')
     
-    # Migration: Add is_favorite column if not exists
+    # User favorites table - Track favorites per user
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS user_favorites (
+            username TEXT NOT NULL,
+            article_id INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (username, article_id),
+            FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
+        )
+    ''')
+    
+    # Migration: Add is_favorite column if not exists (deprecated, will use user_favorites)
     try:
         c.execute('ALTER TABLE articles ADD COLUMN is_favorite INTEGER DEFAULT 0')
         print("✅ Added is_favorite column to articles table")
@@ -390,16 +410,53 @@ def article_detail(article_id):
     
     return render_template('article.html', article=article, lang=lang)
 
-# Delete Article
+# Delete Article - Only creator can delete
 @app.route('/article/delete/<int:article_id>', methods=['POST'])
 def delete_article(article_id):
-    # Cache will be auto-deleted via CASCADE constraint
-    conn = get_db()
-    conn.execute('DELETE FROM articles WHERE id = ?', (article_id,))
-    conn.commit()
-    conn.close()
-    flash('Bài viết đã được xóa thành công!', 'success')
-    return redirect(url_for('index'))
+    """Delete article - only the creator can delete"""
+    try:
+        # Get username from request
+        data = request.get_json() or {}
+        username = data.get('username', '').strip()
+        
+        if not username:
+            return jsonify({'success': False, 'error': 'Username is required'}), 400
+        
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if article exists and get creator
+        article = cursor.execute('SELECT id, created_by FROM articles WHERE id = ?', (article_id,)).fetchone()
+        if not article:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Article not found'}), 404
+        
+        # Check if current user is the creator
+        creator = article['created_by']
+        if creator and creator != username:
+            conn.close()
+            return jsonify({
+                'success': False, 
+                'error': f'⛔ Chỉ người tạo ({creator}) mới có thể xóa bài viết này!'
+            }), 403
+        
+        # If no creator set (old articles), anyone can delete
+        # Cache and article_categories will be auto-deleted via CASCADE constraint
+        cursor.execute('DELETE FROM articles WHERE id = ?', (article_id,))
+        
+        # NOTE: Don't auto-cleanup here - let user manually cleanup via UI
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'message': '✅ Bài viết đã được xóa thành công!'
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # Import articles from JSON - CHỈ IMPORT NỘI DUNG GỐC VỚI VALIDATION
 @app.route('/import', methods=['GET', 'POST'])
@@ -438,20 +495,40 @@ def import_articles():
             
             conn = get_db()
             imported_count = 0
+            
+            # Get username from request (passed from frontend)
+            username = request.form.get('username', '').strip()
+            
+            print(f"🔍 Import articles with username: '{username}'")
+            
             for article in articles_to_import:
                 # CHỈ LƯU NỘI DUNG GỐC - KHÔNG LƯU IPA
-                conn.execute('''
+                cursor = conn.execute('''
                     INSERT INTO articles 
-                    (title_vi, title_en, content_vi, content_en, category)
-                    VALUES (?, ?, ?, ?, ?)
+                    (title_vi, title_en, content_vi, content_en, category, created_by)
+                    VALUES (?, ?, ?, ?, ?, ?)
                 ''', (
                     article.get('title_vi', ''),
                     article.get('title_en', ''),
                     article.get('content_vi', ''),
                     article.get('content_en', ''),
-                    article.get('category', 'general')
+                    article.get('category', 'general'),
+                    username if username else None
                 ))
+                
+                article_id = cursor.lastrowid
                 imported_count += 1
+                
+                print(f"📝 Imported article ID: {article_id}, created_by: {username}")
+                
+                # Add categories using separated logic
+                json_category = article.get('category', '')
+                added_cats = add_categories_to_article(conn, article_id, username, json_category)
+                
+                if added_cats:
+                    print(f"✅ Article {article_id} now has categories: {', '.join(added_cats)}")
+                else:
+                    print(f"⚠️ No categories added to article {article_id}")
             
             conn.commit()
             conn.close()
@@ -528,30 +605,101 @@ def clear_ipa_cache(article_id):
 # API endpoint to toggle favorite
 @app.route('/api/article/<int:article_id>/favorite', methods=['POST'])
 def toggle_favorite(article_id):
-    """Toggle favorite status of an article"""
+    """Toggle favorite status for a specific user"""
     try:
+        # Get username from request body
+        data = request.get_json() or {}
+        username = data.get('username', '').strip()
+        
+        if not username:
+            return jsonify({'success': False, 'error': 'Username is required'}), 400
+        
         conn = get_db()
         cursor = conn.cursor()
         
-        # Get current favorite status
-        article = cursor.execute('SELECT is_favorite FROM articles WHERE id = ?', (article_id,)).fetchone()
+        # Check if article exists
+        article = cursor.execute('SELECT id FROM articles WHERE id = ?', (article_id,)).fetchone()
         if not article:
             conn.close()
             return jsonify({'success': False, 'error': 'Article not found'}), 404
         
-        # Toggle favorite
-        new_status = 0 if article['is_favorite'] else 1
-        cursor.execute('UPDATE articles SET is_favorite = ? WHERE id = ?', (new_status, article_id))
-        conn.commit()
-        conn.close()
+        # Check if already favorited by this user
+        existing = cursor.execute('''
+            SELECT * FROM user_favorites 
+            WHERE username = ? AND article_id = ?
+        ''', (username, article_id)).fetchone()
         
-        return jsonify({
-            'success': True,
-            'is_favorite': new_status,
-            'message': 'Đã thêm vào yêu thích' if new_status else 'Đã bỏ yêu thích'
-        })
+        if existing:
+            # Remove from favorites
+            cursor.execute('''
+                DELETE FROM user_favorites 
+                WHERE username = ? AND article_id = ?
+            ''', (username, article_id))
+            conn.commit()
+            conn.close()
+            
+            return jsonify({
+                'success': True,
+                'is_favorite': False,
+                'message': f'{username} đã bỏ yêu thích'
+            })
+        else:
+            # Add to favorites
+            cursor.execute('''
+                INSERT INTO user_favorites (username, article_id)
+                VALUES (?, ?)
+            ''', (username, article_id))
+            conn.commit()
+            conn.close()
+            
+            return jsonify({
+                'success': True,
+                'is_favorite': True,
+                'message': f'{username} đã thêm vào yêu thích'
+            })
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# Helper function to clean up unused categories
+def cleanup_unused_categories(conn):
+    """
+    Delete categories that are not linked to any articles
+    Returns: number of categories deleted
+    """
+    cursor = conn.cursor()
+    
+    # Debug: List unused categories before deletion
+    unused = cursor.execute('''
+        SELECT id, name FROM categories 
+        WHERE id NOT IN (
+            SELECT DISTINCT category_id FROM article_categories WHERE category_id IS NOT NULL
+        )
+    ''').fetchall()
+    
+    if unused:
+        print(f"🔍 Found {len(unused)} unused categories:")
+        for cat in unused:
+            print(f"  - ID {cat['id']}: {cat['name']}")
+    
+    # Delete categories with no article links
+    cursor.execute('''
+        DELETE FROM categories 
+        WHERE id NOT IN (
+            SELECT DISTINCT category_id FROM article_categories WHERE category_id IS NOT NULL
+        )
+    ''')
+    
+    deleted_count = cursor.rowcount
+    conn.commit()
+    
+    if deleted_count > 0:
+        print(f"🧹 Cleaned up {deleted_count} unused categories")
+    else:
+        print("✅ No unused categories to clean up")
+    
+    return deleted_count
 
 # API endpoint to get all categories
 @app.route('/api/categories', methods=['GET'])
@@ -565,6 +713,28 @@ def get_categories():
         return jsonify({
             'success': True,
             'categories': [dict(c) for c in categories]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# API endpoint to get user favorites
+@app.route('/api/user/<username>/favorites', methods=['GET'])
+def get_user_favorites(username):
+    """Get all favorite article IDs for a specific user"""
+    try:
+        conn = get_db()
+        favorites = conn.execute('''
+            SELECT article_id FROM user_favorites 
+            WHERE username = ?
+        ''', (username,)).fetchall()
+        conn.close()
+        
+        favorite_ids = [f['article_id'] for f in favorites]
+        
+        return jsonify({
+            'success': True,
+            'username': username,
+            'favorite_ids': favorite_ids
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -605,6 +775,9 @@ def update_article_categories(article_id):
             cursor.execute('INSERT INTO article_categories (article_id, category_id) VALUES (?, ?)', 
                          (article_id, cat_id))
         
+        # NOTE: Don't auto-cleanup here to avoid performance hit during frequent edits
+        # User can manually cleanup via refresh button in UI
+        
         conn.commit()
         conn.close()
         
@@ -634,6 +807,41 @@ def get_article_categories(article_id):
             'categories': [dict(c) for c in categories]
         })
     except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# API endpoint to cleanup unused categories
+@app.route('/api/categories/cleanup', methods=['POST'])
+def cleanup_categories():
+    """Manually clean up categories that are not linked to any articles"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Get stats before cleanup
+        total_categories_before = cursor.execute('SELECT COUNT(*) as count FROM categories').fetchone()['count']
+        total_links = cursor.execute('SELECT COUNT(*) as count FROM article_categories').fetchone()['count']
+        
+        # Perform cleanup
+        deleted_count = cleanup_unused_categories(conn)
+        
+        # Get stats after cleanup
+        total_categories_after = cursor.execute('SELECT COUNT(*) as count FROM categories').fetchone()['count']
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'deleted_count': deleted_count,
+            'stats': {
+                'before': total_categories_before,
+                'after': total_categories_after,
+                'total_links': total_links
+            },
+            'message': f'🧹 Đã xóa {deleted_count} categories không sử dụng' if deleted_count > 0 else '✅ Không có categories cần xóa'
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
