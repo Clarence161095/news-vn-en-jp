@@ -1,297 +1,599 @@
-# 📰 News Vietnamese-English Reader
+# 📰 News VN-EN-JP - Ứng dụng Đọc Báo Song Ngữ
 
-Ứng dụng đọc báo song ngữ Việt-Anh với tự động phiên âm IPA cho tiếng Anh, tích hợp nhiều tính năng nâng cao cho trải nghiệm đọc tối ưu.
+Ứng dụng web đọc báo song ngữ Việt-Anh với tính năng IPA (International Phonetic Alphabet), hỗ trợ học ngôn ngữ hiệu quả.
 
-## ✨ Tính năng chính
+---
 
-### 📖 Chế độ đọc
-- **Ba chế độ hiển thị**: 
-  - Tiếng Việt only
-  - Tiếng Anh với IPA
-  - Song ngữ đồng bộ (Bilingual Sync)
-- **Tự động IPA**: Phát âm IPA tự động cho tiếng Anh (eng-to-ipa)
-- **Click IPA**: Click vào từ để xem phát âm (khi IPA bị ẩn)
-- **Ruby annotations**: Hiển thị IPA bằng HTML ruby tags
+## 🎯 Tính Năng Chính
 
-### 🎯 Chế độ Focus Mode
-- **Fullscreen reading**: Toàn màn hình không phân tâm
-- **Sync scrolling**: Cuộn đồng bộ tự nhiên giữa 2 ngôn ngữ
-- **Auto-off**: Luôn tắt khi load page (tránh conflict)
-- **Keyboard shortcut**: Ctrl/Cmd + F để bật/tắt
+### 1. **Đọc Báo Song Ngữ**
+- 🇻🇳 Hiển thị tiếng Việt
+- 🇬🇧 Hiển thị tiếng Anh với IPA tự động
+- 🌍 Chế độ song ngữ (Việt-Anh-IPA cùng lúc)
+- ⚡ IPA được tạo tự động khi xem bài (không lưu trong JSON)
+- 💾 Cache IPA trong database (tự động xóa cache > 30 ngày)
 
-### ⚙️ Cài đặt tùy chỉnh (Settings Panel)
-- **Font size**: Tăng/giảm kích thước chữ (60%-200%)
-  - Shortcuts: Ctrl/Cmd + Plus/Minus/0
-- **Column width**: Điều chỉnh tỷ lệ cột Việt-Anh (20%-80%)
-  - Drag divider hoặc dùng slider
-- **Dark mode**: Chế độ tối bảo vệ mắt
-  - Shortcut: Ctrl/Cmd + D
-- **IPA toggle**: Bật/tắt hiển thị IPA
-  - Shortcut: Ctrl/Cmd + I
-- **Lưu tự động**: Settings được lưu trong localStorage
+### 2. **Hệ Thống User Profile**
+- 👤 Đặt tên người dùng (lưu trong localStorage)
+- 📁 Mỗi user có category riêng (tự động tạo khi favorite bài viết)
+- ❤️ Favorite bài viết theo từng user
+- 🔒 Chỉ creator mới xóa được bài viết của mình
+- 🗑️ Nút xóa chỉ hiện với bài viết của user hiện tại
 
-### 🎨 Giao diện & UX
-- **Responsive design**: Tối ưu cho desktop, tablet, mobile
-- **Drag to resize**: Kéo thanh chia để resize cột (với touch support)
-- **Smooth animations**: Hiệu ứng mượt mà, professional
-- **Word wrapping**: Text xuống dòng tự nhiên với hyphens
-- **Table/List formatting**: Hiển thị đẹp cho table, ul, ol
-- **Optimized width**: English column 95% width để text wrap tốt hơn
+### 3. **Quản Lý Category (Multi-Category)**
+- 📂 Mỗi bài viết có thể có **nhiều categories**
+- 🏷️ Categories hiển thị dạng tags màu sắc
+- 🔍 Filter theo nhiều categories cùng lúc
+- ✅ Checkbox "👤 Bài viết của [username]" - auto filter bài của user
+- 🎨 UI category dropdown với checkbox
 
-### 🔧 Admin Panel
-- **Login/MFA**: Đăng nhập với xác thực 2 lớp (QR code)
-- **CRUD articles**: Tạo, sửa, xóa bài viết
-- **Import JSON**: Nhập bài viết qua JSON với validation
-- **Delete protection**: Confirm dialog khi xóa
-- **Cache management**: Quản lý IPA cache tự động
+### 4. **Tìm Kiếm & Filter**
+- 🔎 Tìm kiếm thông thường (LIKE)
+- 🎯 Tìm kiếm Regex (nâng cao)
+- 📁 Filter theo categories (multi-select)
+- ⭐ Filter chỉ bài viết yêu thích
+- 👤 Filter bài viết của user hiện tại
 
-## 🚀 Cài đặt nhanh
+### 5. **Phân Trang (Pagination)**
+- 📄 Hiển thị 20 bài viết/trang
+- ⚡ Tăng performance khi có nhiều bài viết
+- 🔢 Navigation: Đầu | Trước | 1 2 3 ... | Tiếp | Cuối
+- 🔗 Giữ nguyên filter khi chuyển trang
+- 📊 Hiển thị: "Trang X/Y (Tổng Z bài viết)"
 
-### 1. Reset và khởi động (Windows)
+### 6. **Import JSON**
+- 📥 Import 1 hoặc nhiều bài viết cùng lúc
+- 🔐 Bắt buộc có username trước khi import
+- 📂 Auto add 2 categories: username + JSON category
+- ✅ Backup logic đảm bảo username category luôn được add
+- 📝 Hỗ trợ HTML trong content
+
+### 7. **Dark Mode**
+- 🌙 Chế độ tối bảo vệ mắt
+- 💾 Lưu preference trong localStorage
+- 🎨 UI tối ưu cho cả sáng/tối
+
+---
+
+## 🚀 Cài Đặt & Chạy
+
+### Yêu Cầu
+- Python 3.8+
+- pip
+
+### Cài Đặt Thư Viện
 
 ```bash
-sh reset.sh
+# Tạo virtual environment (recommended)
+python -m venv venv
+
+# Kích hoạt venv
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
+# Cài đặt dependencies
+pip install -r requirements.txt
 ```
 
-Script này sẽ:
-- Dừng app đang chạy
-- Backup database cũ
-- Xóa và tạo lại database
-- Cài đặt dependencies
-- Khởi động app trên port 5000
+### Chạy Ứng Dụng
 
-### 2. Truy cập ứng dụng
+```bash
+# Development mode (debug ON)
+python app.py
 
-- **Trang chủ**: http://localhost:5000
-- **Import bài viết**: http://localhost:5000/import
-- **Admin dashboard**: http://localhost:5000/admin
+# Hoặc dùng script
+bash start.sh
 
-## 📝 Định dạng JSON import
+# Background mode
+bash start-background.sh
+```
 
+Server sẽ chạy tại: **http://localhost:5000** hoặc **http://192.168.1.8:5000**
+
+### Dừng Server
+
+```bash
+# Dừng server
+bash stop.sh
+
+# Check status
+bash status.sh
+
+# Reset database (XÓA TẤT CẢ DỮ LIỆU!)
+bash reset.sh
+```
+
+---
+
+## 📝 Hướng Dẫn Sử Dụng
+
+### 1. Đặt Tên User (BẮT BUỘC trước khi import)
+
+1. Click biểu tượng **👤** ở góc phải
+2. Nhập tên của bạn (ví dụ: "Clarence")
+3. Click **Lưu**
+4. Tên sẽ hiển thị: "👤 Xin chào, **Clarence**!"
+
+> ⚠️ **LƯU Ý**: Phải đặt tên trước khi import, nếu không bạn sẽ **không thể xóa** bài viết sau này!
+
+### 2. Import Bài Viết
+
+**Truy cập:** http://localhost:5000/import
+
+**Định dạng JSON đơn:**
 ```json
 {
   "title_vi": "Tiêu đề tiếng Việt",
   "title_en": "English Title",
-  "content_vi": "<p>Nội dung tiếng Việt</p>",
-  "content_en": "<p>English content</p>",
-  "category": "technology"
+  "content_vi": "Nội dung tiếng Việt...",
+  "content_en": "English content...",
+  "category": "news"
 }
 ```
 
-**Lưu ý**:
-- Phải có ít nhất 1 title (title_vi hoặc title_en)
-- Phải có ít nhất 1 content (content_vi hoặc content_en)
-- Hỗ trợ import đơn object hoặc array of objects
-- HTML được preserve (table, ul, ol, p, h1-h6)
-- Validation tự động kiểm tra cấu trúc JSON
-
-## 🛠️ Scripts hữu ích
-
-### Windows
-```bash
-sh reset.sh      # Reset và khởi động lại
-sh start.sh      # Khởi động app
-sh stop.sh       # Dừng app
-sh status.sh     # Kiểm tra trạng thái
+**Import nhiều bài cùng lúc:**
+```json
+[
+  {
+    "title_vi": "Bài viết 1",
+    "title_en": "Article 1",
+    "content_vi": "Nội dung 1",
+    "content_en": "Content 1",
+    "category": "technology"
+  },
+  {
+    "title_vi": "Bài viết 2",
+    "title_en": "Article 2",
+    "content_vi": "Nội dung 2",
+    "content_en": "Content 2",
+    "category": "education"
+  }
+]
 ```
 
-### Linux/macOS
-```bash
-./reset-linux.sh    # Reset và khởi động lại
-./start.sh          # Khởi động app
-./stop.sh           # Dừng app
-./status.sh         # Kiểm tra trạng thái
-```
+**Kết quả:**
+- Bài viết sẽ có **2 categories**: Username (Clarence) + JSON category (news/technology/etc)
+- IPA tự động tạo khi xem bài (không cần thêm vào JSON)
+- Bạn có thể xóa bài vì có category của mình
 
-## 🗄️ Cấu trúc Database
+### 3. Xem & Tìm Kiếm Bài Viết
 
-### Table: articles
-- `id`: Primary key
-- `title_vi`: Tiêu đề tiếng Việt
-- `title_en`: Tiêu đề tiếng Anh
-- `content_vi`: Nội dung tiếng Việt (HTML)
-- `content_en`: Nội dung tiếng Anh (HTML)
-- `category`: Danh mục
-- `created_at`: Ngày tạo (UTC)
-- `updated_at`: Ngày cập nhật (UTC)
+**Homepage:** http://localhost:5000/
 
-### Table: article_cache
-- `article_id`: Foreign key → articles.id
-- `title_en_ipa`: Tiêu đề tiếng Anh có IPA
-- `content_en_ipa`: Nội dung tiếng Anh có IPA
-- `cached_at`: Ngày cache (UTC)
+**Search:**
+- Nhập từ khóa vào ô tìm kiếm
+- ☑️ Check **"Regex"** để dùng regular expression
+- Click **🔍 Tìm kiếm**
 
-## ⚡ Tối ưu hóa hiệu năng
+**Filter:**
+- Click **📁 Categories** → Chọn categories muốn filter
+- ☑️ Check **"⭐ Chỉ yêu thích"** → Chỉ hiện bài đã favorite
+- ☑️ Check **"👤 Bài viết của [username]"** → Chỉ hiện bài của bạn
 
-1. **IPA Caching**: Kết quả IPA được lưu trong database, chỉ tính 1 lần
-2. **Lazy Loading**: IPA chỉ được tạo khi xem bài viết lần đầu
-3. **In-memory Cache**: Cache IPA lookups trong runtime để tránh trùng lặp
-4. **Optimized Regex**: Dùng compiled regex patterns
-5. **HTML Block Preservation**: Preserve table/list structure khi process IPA
-6. **Viewport Width Calculation**: Tính toán chính xác dựa trên vw cho responsive
-7. **Debounced Resize**: Resize event được debounce 250ms
+**Pagination:**
+- Click số trang để chuyển trang
+- Click **⏮️ Đầu** / **⏭️ Cuối** để nhảy nhanh
+- Mỗi trang hiển thị 20 bài viết
 
-## ⌨️ Keyboard Shortcuts
+### 4. Đọc Bài Viết
 
-| Shortcut | Chức năng |
-|----------|-----------|
-| `Ctrl/Cmd + Plus` | Tăng font size |
-| `Ctrl/Cmd + Minus` | Giảm font size |
-| `Ctrl/Cmd + 0` | Reset font size |
-| `Ctrl/Cmd + D` | Toggle dark mode |
-| `Ctrl/Cmd + F` | Toggle focus mode |
-| `Ctrl/Cmd + I` | Toggle IPA |
+**Từ homepage, click:**
+- **🇻🇳 Việt** → Chỉ tiếng Việt
+- **🇬🇧 Anh** → Tiếng Anh + IPA
+- **🌍 Song Ngữ** → Việt-Anh-IPA cùng lúc
 
-## 🔧 Cấu hình
+**Trong trang chi tiết:**
+- Click **❤️** để favorite/unfavorite
+- Click **🗑️ Xóa** (chỉ hiện nếu bài của bạn)
+- Xem categories của bài viết (tags màu)
 
-### Requirements
-- Python 3.7+
-- Flask 3.0.0
-- eng-to-ipa 0.0.2
-- gunicorn 21.2.0
+### 5. Quản Lý Favorites
 
-### Cài đặt thủ công
+**Thêm favorite:**
+- Click **🤍** → Chuyển thành **❤️**
+- Tự động thêm username category vào bài viết
 
-```bash
-# Tạo virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+**Bỏ favorite:**
+- Click **❤️** → Chuyển về **🤍**
+- Category username vẫn giữ nguyên (không tự xóa)
 
-# Cài đặt dependencies
-pip install -r requirements.txt
+**Xem tất cả favorites:**
+- Check ☑️ **"⭐ Chỉ yêu thích"** trên homepage
 
-# Khởi động development
-python app.py
+### 6. Xóa Bài Viết
 
-# Hoặc production với gunicorn
-gunicorn -w 4 -b 0.0.0.0:5000 app:app
-```
+**Điều kiện:**
+- Bài viết phải có category = username của bạn
+- Nút **🗑️ Xóa** chỉ hiện với bài viết của bạn
 
-## 📊 Logs
+**Cách xóa:**
+1. Vào trang chi tiết bài viết hoặc từ homepage
+2. Click **🗑️ Xóa**
+3. Xác nhận → Bài viết bị xóa vĩnh viễn
 
-```bash
-# Xem access logs
-tail -f logs/access.log
-
-# Xem error logs
-tail -f logs/error.log
-```
-
-## 🐛 Xử lý lỗi thường gặp
-
-### Port 5000 đã được sử dụng
-```bash
-# Windows
-netstat -ano | findstr :5000
-taskkill /PID <PID> /F
-
-# Linux/macOS
-lsof -ti:5000 | xargs kill -9
-```
-
-### Import JSON lỗi
-- Kiểm tra cú pháp JSON (dùng JSONLint.com)
-- Đảm bảo có đủ field title_vi/title_en và content_vi/content_en
-- Kiểm tra encoding file (phải UTF-8)
-
-### IPA không hiển thị
-- Đảm bảo eng-to-ipa được cài đúng: `pip list | grep eng-to-ipa`
-- Xóa cache: `DELETE FROM article_cache;`
-- Restart app
-
-### Focus Mode bị conflict
-- Focus Mode đã được fix để không lưu localStorage
-- Luôn bắt đầu tắt khi load page
-- Chỉ bật thủ công khi cần
-
-### Column width không chính xác
-- Hard reload (Ctrl+Shift+R) để clear cache
-- Kiểm tra console để xem vw calculation
-- Reset về 50% bằng slider
-
-## 📁 Cấu trúc Project
-
-```
-news-vn-en-jp/
-├── app.py                    # Main Flask application
-├── articles.db              # SQLite database
-├── requirements.txt         # Python dependencies
-├── README.md               # This file
-├── templates/              # HTML templates
-│   ├── base.html          # Base layout
-│   ├── index.html         # Home page
-│   ├── article.html       # Article reader (main)
-│   ├── import.html        # Import JSON page
-│   └── admin_*.html       # Admin pages
-├── logs/                   # Application logs
-│   ├── access.log
-│   └── error.log
-├── backups/               # Database backups
-└── scripts/              # Shell scripts
-    ├── reset.sh
-    ├── start.sh
-    ├── stop.sh
-    └── status.sh
-```
-
-## 🎯 Technical Highlights
-
-### Frontend
-- Pure JavaScript (no framework dependencies)
-- CSS Grid for bilingual layout
-- Viewport width (vw) calculations for responsive
-- LocalStorage for user preferences
-- Touch-enabled drag divider
-- Smooth scroll sync algorithm
-
-### Backend
-- Flask 3.0 with Jinja2 templates
-- SQLite with foreign key constraints
-- IPA generation with eng-to-ipa
-- HTML parsing with regex (optimized)
-- Cache layer for performance
-
-### Performance
-- IPA caching reduces processing time by 95%
-- In-memory cache for duplicate words
-- Lazy IPA generation on first view
-- Debounced resize events
-- Optimized regex patterns
-
-## 🗺️ Roadmap
-
-- [ ] API REST đầy đủ
-- [ ] Categories management UI
-- [ ] Full-text search (Vietnamese + English)
-- [ ] Export to PDF/EPUB
-- [ ] Audio pronunciation (TTS)
-- [ ] Vocabulary highlighting
-- [ ] Progress tracking
-- [ ] Mobile app (React Native)
-- [ ] Multi-user support
-- [ ] Annotation/notes feature
-
-## 📄 License
-
-MIT License - Free to use and modify
-
-## 🤝 Contributing
-
-Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
-
-### Development Setup
-1. Fork the repo
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📧 Contact
-
-For questions or suggestions, please open an issue on GitHub.
+> ⚠️ **Lưu ý**: Không thể khôi phục sau khi xóa!
 
 ---
 
-**Created with ❤️ for language learners**
+## 🗃️ Database Schema
 
-*Last updated: November 24, 2025*
+### Tables
+
+**1. articles** - Lưu nội dung bài viết
+```sql
+CREATE TABLE articles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title_vi TEXT,
+    title_en TEXT,
+    content_vi TEXT,
+    content_en TEXT,
+    category TEXT,              -- Legacy field (không dùng nữa)
+    is_favorite INTEGER DEFAULT 0,  -- Legacy (không dùng nữa)
+    created_by TEXT,            -- Username của người tạo
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**2. categories** - Danh sách categories
+```sql
+CREATE TABLE categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**3. article_categories** - Quan hệ many-to-many
+```sql
+CREATE TABLE article_categories (
+    article_id INTEGER,
+    category_id INTEGER,
+    PRIMARY KEY (article_id, category_id),
+    FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+);
+```
+
+**4. user_favorites** - Favorites theo user
+```sql
+CREATE TABLE user_favorites (
+    username TEXT NOT NULL,
+    article_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (username, article_id),
+    FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
+);
+```
+
+**5. article_cache** - Cache IPA đã generate
+```sql
+CREATE TABLE article_cache (
+    article_id INTEGER PRIMARY KEY,
+    title_en_ipa TEXT,
+    content_en_ipa TEXT,
+    cached_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
+);
+```
+
+---
+
+## 🛠️ API Endpoints
+
+### Articles
+
+**GET /** - Homepage với pagination
+- Query params: `page`, `q`, `regex`, `categories[]`, `favorites`
+
+**GET /article/<id>** - Chi tiết bài viết
+- Query param: `lang` (vi/en/both)
+
+**DELETE /article/delete/<id>** - Xóa bài viết
+- Body: `{"username": "..."}`
+- Chỉ creator mới xóa được
+
+**POST /import** - Import JSON
+- Form data: `json_data`, `username`
+
+### Favorites
+
+**POST /api/article/<id>/favorite** - Toggle favorite
+- Body: `{"username": "...", "is_favorite": true/false}`
+
+**GET /api/user/<username>/favorites** - Lấy danh sách favorite IDs
+- Response: `{"favorite_ids": [1, 2, 3]}`
+
+### Categories
+
+**GET /api/article/<id>/categories** - Lấy categories của bài viết
+- Response: `{"categories": [{"id": 1, "name": "news"}, ...]}`
+
+**POST /api/article/<id>/categories** - Update categories
+- Body: `{"categories": ["news", "technology"]}`
+- Thay thế toàn bộ categories
+
+**POST /api/article/<id>/add-category** - Thêm 1 category (backup)
+- Body: `{"category": "Clarence"}`
+- Chỉ thêm, không xóa existing
+
+---
+
+## 📂 Cấu Trúc Thư Mục
+
+```
+news-vn-en-jp/
+├── app.py                  # Flask application chính
+├── import_logic.py         # Logic thêm categories khi import
+├── articles.db             # SQLite database
+├── requirements.txt        # Python dependencies
+├── README.md               # Tài liệu này
+│
+├── templates/              # Jinja2 templates
+│   ├── base.html          # Base template với header/footer
+│   ├── index.html         # Homepage với search/filter/pagination
+│   ├── article.html       # Chi tiết bài viết
+│   ├── import.html        # Import JSON form
+│   ├── admin_login.html   # Admin login (nếu enable)
+│   └── ...
+│
+├── logs/                   # Server logs
+│   ├── access.log
+│   └── error.log
+│
+├── backups/               # Database backups (tạo bởi reset.sh)
+│
+├── venv/                  # Python virtual environment
+│
+├── Lib/                   # External libraries (eng_to_ipa)
+│   └── site-packages/
+│       └── eng_to_ipa/
+│
+└── Scripts/               # Shell scripts
+    ├── start.sh           # Start server
+    ├── stop.sh            # Stop server
+    ├── status.sh          # Check server status
+    ├── reset.sh           # Reset database
+    ├── deploy.sh          # Deploy script
+    └── update.sh          # Update script
+```
+
+---
+
+## 🔧 Cấu Hình
+
+### Flask Settings (app.py)
+
+```python
+# Secret key (THAY ĐỔI trong production!)
+app.config['SECRET_KEY'] = 'your-secret-key-change-this-in-production-2024'
+
+# Cache expiration (ngày)
+CACHE_EXPIRATION_DAYS = 30  # Tự động xóa cache > 30 ngày
+
+# Debug mode
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
+```
+
+### Database Location
+
+- Development: `./articles.db`
+- Backups: `./backups/articles_reset_backup_YYYYMMDD_HHMMSS.db`
+
+---
+
+## 🐛 Troubleshooting
+
+### 1. Import không add category đúng
+
+**Triệu chứng:** Bài viết chỉ có username category, không có JSON category
+
+**Nguyên nhân:** Flask code caching
+
+**Giải pháp:**
+```bash
+# Kill tất cả Python processes
+ps aux | grep python | awk '{print $2}' | xargs kill -9
+
+# Clear cache
+find . -type d -name __pycache__ -exec rm -rf {} +
+
+# Restart server
+bash start.sh
+```
+
+**Check logs:**
+- Phải thấy: `✅ Article X now has categories: username, json_category`
+- Nếu thấy: `⚠️ BACKUP: Force adding...` → Backup logic đã chạy
+
+### 2. Không thấy nút Xóa
+
+**Nguyên nhân:** 
+- Chưa đặt username → Click 👤 để đặt tên
+- Bài viết không có category của bạn → Import lại với username đúng
+
+**Check:**
+```sql
+-- Check categories của bài viết
+SELECT c.name FROM categories c
+JOIN article_categories ac ON c.id = ac.category_id
+WHERE ac.article_id = 1;  -- Thay 1 = article ID
+```
+
+### 3. IPA không hiển thị
+
+**Nguyên nhân:** Library `eng-to-ipa` chưa cài
+
+**Giải pháp:**
+```bash
+pip install eng-to-ipa
+```
+
+**Verify:**
+- Vào http://localhost:5000/import
+- Check "Trạng thái thư viện"
+- Phải hiện: **IPA (eng-to-ipa): Đã cài đặt ✓**
+
+### 4. Database bị lỗi
+
+**Reset toàn bộ (XÓA TẤT CẢ DỮ LIỆU!):**
+```bash
+bash reset.sh
+```
+
+**Restore từ backup:**
+```bash
+# List backups
+ls -lh backups/
+
+# Copy backup về
+cp backups/articles_reset_backup_20241124_120000.db articles.db
+```
+
+### 5. Pagination không hiện
+
+**Nguyên nhân:** Có < 20 bài viết
+
+**Kiểm tra:**
+```bash
+sqlite3 articles.db "SELECT COUNT(*) FROM articles;"
+```
+
+**Import thêm bài viết để test pagination**
+
+---
+
+## 📊 Performance Tips
+
+### 1. Cache IPA
+- IPA tự động cache trong database
+- Chỉ generate 1 lần, dùng lại nhiều lần
+- Auto cleanup cache > 30 ngày
+
+### 2. Pagination
+- Mỗi trang chỉ load 20 bài
+- Database dùng `LIMIT` và `OFFSET`
+- Nhanh ngay cả với 1000+ bài viết
+
+### 3. Index Database
+```sql
+-- Tạo index để tăng tốc query
+CREATE INDEX IF NOT EXISTS idx_articles_created_at ON articles(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_articles_created_by ON articles(created_by);
+CREATE INDEX IF NOT EXISTS idx_categories_name ON categories(name);
+CREATE INDEX IF NOT EXISTS idx_user_favorites_username ON user_favorites(username);
+```
+
+### 4. Production Deployment
+
+**Dùng Gunicorn (production WSGI server):**
+```bash
+# Install
+pip install gunicorn
+
+# Run
+gunicorn -w 4 -b 0.0.0.0:5000 app:app
+```
+
+**Dùng Nginx (reverse proxy):**
+```nginx
+server {
+    listen 80;
+    server_name yourdomain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+---
+
+## 🔒 Security Notes
+
+### Production Checklist
+
+- [ ] Đổi `SECRET_KEY` trong `app.py`
+- [ ] Disable `debug=True` trong production
+- [ ] Dùng HTTPS (SSL/TLS)
+- [ ] Backup database định kỳ
+- [ ] Restrict admin routes (nếu enable admin)
+- [ ] Set proper file permissions (chmod 600 articles.db)
+- [ ] Use environment variables cho sensitive data
+
+### Example: Environment Variables
+
+```python
+import os
+
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-do-not-use')
+DATABASE = os.environ.get('DATABASE_PATH', './articles.db')
+```
+
+---
+
+## 📈 Roadmap (Future Features)
+
+- [ ] User authentication (login/register)
+- [ ] Rich text editor cho import
+- [ ] Export bài viết ra PDF/DOCX
+- [ ] Thêm ngôn ngữ thứ 3 (tiếng Nhật)
+- [ ] Audio pronunciation (TTS)
+- [ ] Vocabulary flashcards
+- [ ] Reading progress tracking
+- [ ] Social features (share, comment)
+- [ ] Mobile app (React Native)
+- [ ] AI-powered translation suggestions
+
+---
+
+## 📜 License
+
+MIT License - Free to use and modify
+
+---
+
+## 👥 Contributors
+
+- **Clarence** - Initial work & main developer
+- **AI Assistant** - Code implementation & documentation
+
+---
+
+## 📞 Support
+
+- **Issues:** GitHub Issues
+- **Docs:** This README
+- **Email:** [your-email@example.com]
+
+---
+
+## 🎉 Changelog
+
+### Version 2.0 (2024-11-24)
+- ✅ Multi-category system (many-to-many)
+- ✅ User profile with localStorage
+- ✅ Per-user favorites
+- ✅ Conditional delete (only creator)
+- ✅ Smart delete button visibility
+- ✅ Pagination (20 articles/page)
+- ✅ Backup category logic for import
+- ✅ "My Articles" checkbox filter
+- ✅ Category tags UI
+
+### Version 1.0 (Initial)
+- ✅ Basic article reading
+- ✅ IPA generation
+- ✅ Search & filter
+- ✅ Import JSON
+- ✅ Dark mode
+- ✅ Favorites (global)
+
+---
+
+**Enjoy reading! 📚✨**

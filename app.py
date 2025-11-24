@@ -17,6 +17,9 @@ import sqlite3
 import json
 from datetime import datetime, timedelta
 import re
+import importlib
+import import_logic
+importlib.reload(import_logic)  # Force reload
 from import_logic import add_categories_to_article
 
 app = Flask(__name__)
@@ -328,7 +331,17 @@ def index():
     categories = request.args.getlist('categories')  # Multiple categories
     favorites_only = request.args.get('favorites', 'false') == 'true'
     
-    # Base query
+    # PAGINATION PARAMETERS
+    page = request.args.get('page', 1, type=int)
+    per_page = 20  # 20 articles per page
+    offset = (page - 1) * per_page
+    
+    # Base query for counting total
+    count_query = 'SELECT COUNT(DISTINCT a.id) as total FROM articles a'
+    count_params = []
+    count_conditions = []
+    
+    # Base query for fetching articles
     query = 'SELECT DISTINCT a.* FROM articles a'
     params = []
     conditions = []
@@ -337,9 +350,13 @@ def index():
     if categories:
         query += ' LEFT JOIN article_categories ac ON a.id = ac.article_id'
         query += ' LEFT JOIN categories c ON ac.category_id = c.id'
+        count_query += ' LEFT JOIN article_categories ac ON a.id = ac.article_id'
+        count_query += ' LEFT JOIN categories c ON ac.category_id = c.id'
         placeholders = ','.join('?' * len(categories))
         conditions.append(f'c.name IN ({placeholders})')
+        count_conditions.append(f'c.name IN ({placeholders})')
         params.extend(categories)
+        count_params.extend(categories)
     
     # Search filter
     if search_query:
@@ -351,18 +368,27 @@ def index():
             # Normal LIKE search
             search_condition = '(a.title_vi LIKE ? OR a.title_en LIKE ? OR a.content_vi LIKE ? OR a.content_en LIKE ?)'
             conditions.append(search_condition)
+            count_conditions.append(search_condition)
             search_pattern = f'%{search_query}%'
             params.extend([search_pattern] * 4)
+            count_params.extend([search_pattern] * 4)
     
     # Favorites filter
     if favorites_only:
         conditions.append('a.is_favorite = 1')
+        count_conditions.append('a.is_favorite = 1')
     
     # Combine conditions
     if conditions:
         query += ' WHERE ' + ' AND '.join(conditions)
+    if count_conditions:
+        count_query += ' WHERE ' + ' AND '.join(count_conditions)
+    
+    # Get total count BEFORE pagination
+    total_count = conn.execute(count_query, count_params).fetchone()['total']
     
     query += ' ORDER BY a.created_at DESC'
+    query += f' LIMIT {per_page} OFFSET {offset}'
     
     articles = conn.execute(query, params).fetchall()
     
@@ -377,8 +403,13 @@ def index():
                    pattern.search(a['content_vi'] or '') or 
                    pattern.search(a['content_en'] or '')
             ]
+            # Recalculate total for regex
+            total_count = len(articles)
         except re.error:
             flash('Invalid regex pattern', 'error')
+    
+    # Calculate pagination info
+    total_pages = (total_count + per_page - 1) // per_page  # Ceiling division
     
     # Get all categories for filter UI - Convert Row to dict/list
     all_categories_raw = conn.execute('SELECT DISTINCT name FROM categories ORDER BY name').fetchall()
@@ -392,7 +423,10 @@ def index():
                          search_query=search_query,
                          use_regex=use_regex,
                          selected_categories=categories,
-                         favorites_only=favorites_only)
+                         favorites_only=favorites_only,
+                         page=page,
+                         total_pages=total_pages,
+                         total_count=total_count)
 
 # Article detail page - Tự động tạo IPA khi hiển thị
 @app.route('/article/<int:article_id>')
@@ -529,6 +563,29 @@ def import_articles():
                     print(f"✅ Article {article_id} now has categories: {', '.join(added_cats)}")
                 else:
                     print(f"⚠️ No categories added to article {article_id}")
+                
+                # BACKUP: Force add username category to ensure it's added
+                if username and username.strip():
+                    username_clean = username.strip()
+                    # Check if username category exists for this article
+                    check_cat = cursor.execute('''
+                        SELECT COUNT(*) as count FROM article_categories ac
+                        JOIN categories c ON ac.category_id = c.id
+                        WHERE ac.article_id = ? AND c.name = ?
+                    ''', (article_id, username_clean)).fetchone()
+                    
+                    if check_cat['count'] == 0:
+                        print(f"⚠️ BACKUP: Username category '{username_clean}' not found, force adding...")
+                        # Create category if not exists
+                        cursor.execute('INSERT OR IGNORE INTO categories (name) VALUES (?)', (username_clean,))
+                        # Get category ID
+                        cat_id = cursor.execute('SELECT id FROM categories WHERE name = ?', (username_clean,)).fetchone()['id']
+                        # Link to article
+                        cursor.execute('INSERT OR IGNORE INTO article_categories (article_id, category_id) VALUES (?, ?)', 
+                                     (article_id, cat_id))
+                        print(f"✅ BACKUP: Force added username category '{username_clean}' to article {article_id}")
+                    else:
+                        print(f"✅ Username category '{username_clean}' already exists for article {article_id}")
             
             conn.commit()
             conn.close()
@@ -805,6 +862,61 @@ def get_article_categories(article_id):
         return jsonify({
             'success': True,
             'categories': [dict(c) for c in categories]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# API backup: Force add a single category to article (doesn't remove existing)
+@app.route('/api/article/<int:article_id>/add-category', methods=['POST'])
+def force_add_category(article_id):
+    """Force add a category to article (backup API to ensure category is added)"""
+    try:
+        data = request.get_json()
+        category_name = data.get('category', '').strip()
+        
+        if not category_name:
+            return jsonify({'success': False, 'error': 'Category name is required'}), 400
+        
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if article exists
+        article = cursor.execute('SELECT id FROM articles WHERE id = ?', (article_id,)).fetchone()
+        if not article:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Article not found'}), 404
+        
+        # Insert category if not exists
+        cursor.execute('INSERT OR IGNORE INTO categories (name) VALUES (?)', (category_name,))
+        
+        # Get category ID
+        cat_id = cursor.execute('SELECT id FROM categories WHERE name = ?', (category_name,)).fetchone()['id']
+        
+        # Check if already linked
+        existing = cursor.execute('''
+            SELECT 1 FROM article_categories 
+            WHERE article_id = ? AND category_id = ?
+        ''', (article_id, cat_id)).fetchone()
+        
+        if existing:
+            conn.close()
+            return jsonify({
+                'success': True,
+                'message': f'Category "{category_name}" already exists for this article',
+                'already_exists': True
+            })
+        
+        # Link article to category
+        cursor.execute('INSERT INTO article_categories (article_id, category_id) VALUES (?, ?)', 
+                     (article_id, cat_id))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'message': f'✅ Added category "{category_name}" to article {article_id}',
+            'already_exists': False
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500

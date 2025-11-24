@@ -417,6 +417,60 @@
         </div>
     </div>
     {% endfor %}
+    
+    <!-- PAGINATION -->
+    {% if total_pages > 1 %}
+    <div class="pagination-container" style="margin-top: 30px; text-align: center;">
+        <div style="background: white; padding: 15px 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: inline-block;">
+            <div style="margin-bottom: 10px; color: #666; font-size: 0.9em;">
+                📄 Trang {{ page }}/{{ total_pages }} (Tổng {{ total_count }} bài viết)
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                {% if page > 1 %}
+                <a href="?page=1{{ '&q=' + search_query if search_query else '' }}{{ '&regex=true' if use_regex else '' }}{% for cat in selected_categories %}&categories={{ cat }}{% endfor %}{{ '&favorites=true' if favorites_only else '' }}"
+                   class="pagination-btn" style="padding: 8px 12px; background: #3498db; color: white; border-radius: 5px; text-decoration: none; font-weight: 500; transition: background 0.2s;"
+                   onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">
+                    ⏮️ Đầu
+                </a>
+                <a href="?page={{ page - 1 }}{{ '&q=' + search_query if search_query else '' }}{{ '&regex=true' if use_regex else '' }}{% for cat in selected_categories %}&categories={{ cat }}{% endfor %}{{ '&favorites=true' if favorites_only else '' }}"
+                   class="pagination-btn" style="padding: 8px 12px; background: #3498db; color: white; border-radius: 5px; text-decoration: none; font-weight: 500; transition: background 0.2s;"
+                   onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">
+                    ⬅️ Trước
+                </a>
+                {% endif %}
+                
+                <!-- Page numbers -->
+                {% set start_page = [1, page - 2]|max %}
+                {% set end_page = [total_pages, page + 2]|min %}
+                
+                {% for p in range(start_page, end_page + 1) %}
+                <a href="?page={{ p }}{{ '&q=' + search_query if search_query else '' }}{{ '&regex=true' if use_regex else '' }}{% for cat in selected_categories %}&categories={{ cat }}{% endfor %}{{ '&favorites=true' if favorites_only else '' }}"
+                   class="pagination-btn {% if p == page %}pagination-active{% endif %}"
+                   style="padding: 8px 12px; {% if p == page %}background: #e67e22; font-weight: bold;{% else %}background: #95a5a6;{% endif %} color: white; border-radius: 5px; text-decoration: none; transition: background 0.2s;"
+                   onmouseover="if ({{ p }} != {{ page }}) this.style.background='#7f8c8d'"
+                   onmouseout="if ({{ p }} != {{ page }}) this.style.background='#95a5a6'">
+                    {{ p }}
+                </a>
+                {% endfor %}
+                
+                {% if page < total_pages %}
+                <a href="?page={{ page + 1 }}{{ '&q=' + search_query if search_query else '' }}{{ '&regex=true' if use_regex else '' }}{% for cat in selected_categories %}&categories={{ cat }}{% endfor %}{{ '&favorites=true' if favorites_only else '' }}"
+                   class="pagination-btn" style="padding: 8px 12px; background: #3498db; color: white; border-radius: 5px; text-decoration: none; font-weight: 500; transition: background 0.2s;"
+                   onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">
+                    Tiếp ➡️
+                </a>
+                <a href="?page={{ total_pages }}{{ '&q=' + search_query if search_query else '' }}{{ '&regex=true' if use_regex else '' }}{% for cat in selected_categories %}&categories={{ cat }}{% endfor %}{{ '&favorites=true' if favorites_only else '' }}"
+                   class="pagination-btn" style="padding: 8px 12px; background: #3498db; color: white; border-radius: 5px; text-decoration: none; font-weight: 500; transition: background 0.2s;"
+                   onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">
+                    Cuối ⏭️
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <!-- END PAGINATION -->
+    
 {% else %}
     <div class="card no-results">
         {% if search_query or selected_categories or favorites_only %}
