@@ -956,6 +956,135 @@ def cleanup_categories():
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============================================================================
+# API IMPORT ENDPOINT - For external tools integration (ChatGPT, Automation)
+# ============================================================================
+@app.route('/api/import', methods=['POST'])
+def api_import_articles():
+    """
+    API endpoint to import articles from external tools (ChatGPT, automation scripts).
+    NO AUTHENTICATION REQUIRED - Open for automation.
+    
+    Expected JSON format:
+    {
+        "articles": [
+            {
+                "title_vi": "Tiêu đề tiếng Việt",
+                "title_en": "English Title",
+                "content_vi": "Nội dung tiếng Việt...",
+                "content_en": "English content...",
+                "category": "news"
+            }
+        ]
+    }
+    
+    Response:
+    {
+        "success": true,
+        "imported_count": 5,
+        "article_ids": [1, 2, 3, 4, 5],
+        "message": "Successfully imported 5 articles"
+    }
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No JSON data provided'
+            }), 400
+        
+        # Get articles array
+        articles = data.get('articles', [])
+        if not articles:
+            return jsonify({
+                'success': False,
+                'error': 'No articles provided'
+            }), 400
+        
+        if not isinstance(articles, list):
+            return jsonify({
+                'success': False,
+                'error': 'Articles must be an array'
+            }), 400
+        
+        # Import articles
+        conn = get_db()
+        cursor = conn.cursor()
+        imported_count = 0
+        article_ids = []
+        creator = "Bot"  # Fixed creator for API imports
+        
+        for article in articles:
+            # Validate required fields
+            if not article.get('title_vi') and not article.get('title_en'):
+                continue  # Skip articles without title
+            
+            # Insert article
+            cursor.execute('''
+                INSERT INTO articles 
+                (title_vi, title_en, content_vi, content_en, category, created_by)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (
+                article.get('title_vi', ''),
+                article.get('title_en', ''),
+                article.get('content_vi', ''),
+                article.get('content_en', ''),
+                article.get('category', 'general'),
+                creator
+            ))
+            
+            article_id = cursor.lastrowid
+            article_ids.append(article_id)
+            imported_count += 1
+            
+            # Add categories (Bot + JSON category)
+            json_category = article.get('category', '')
+            added_cats = add_categories_to_article(conn, article_id, creator, json_category)
+            
+            print(f"🤖 API Import: Article ID {article_id}, categories: {', '.join(added_cats) if added_cats else 'None'}")
+            
+            # BACKUP: Ensure Bot category exists
+            check_cat = cursor.execute('''
+                SELECT COUNT(*) as count FROM article_categories ac
+                JOIN categories c ON ac.category_id = c.id
+                WHERE ac.article_id = ? AND c.name = ?
+            ''', (article_id, creator)).fetchone()
+            
+            if check_cat['count'] == 0:
+                cursor.execute('INSERT OR IGNORE INTO categories (name) VALUES (?)', (creator,))
+                cat_id = cursor.execute('SELECT id FROM categories WHERE name = ?', (creator,)).fetchone()['id']
+                cursor.execute('INSERT OR IGNORE INTO article_categories (article_id, category_id) VALUES (?, ?)', 
+                             (article_id, cat_id))
+                print(f"✅ BACKUP: Force added Bot category to article {article_id}")
+        
+        conn.commit()
+        conn.close()
+        
+        # Clean old cache
+        deleted_cache = clean_old_cache()
+        
+        return jsonify({
+            'success': True,
+            'imported_count': imported_count,
+            'article_ids': article_ids,
+            'message': f'Successfully imported {imported_count} articles',
+            'cache_cleaned': deleted_cache
+        }), 201
+        
+    except json.JSONDecodeError as e:
+        return jsonify({
+            'success': False,
+            'error': f'Invalid JSON format: {str(e)}'
+        }), 400
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True, host='0.0.0.0', port=5000)
