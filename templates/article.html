@@ -1511,28 +1511,52 @@
         </div>
     </div>
     
+    <!-- Category Management Group -->
+    <div class="settings-section">
+        <button onclick="toggleSection('categorySettings')" class="settings-group-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            📁 Quản lý Categories <span id="categorySettingsIcon">▼</span>
+        </button>
+        <div id="categorySettings" class="settings-group-content" style="display: block;">
+            <div style="margin-bottom: 10px;">
+                <label style="display: block; font-size: 13px; font-weight: bold; color: #555; margin-bottom: 8px;">
+                    Categories của bài viết <span id="categoryCount" style="color: #999; font-weight: normal;">(0/5)</span>
+                </label>
+                
+                <!-- Category Input với Autocomplete -->
+                <div style="position: relative; margin-bottom: 8px;">
+                    <input type="text" id="categoryInput" placeholder="Chọn hoặc nhập category mới..."
+                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 12px;"
+                           onkeypress="if(event.key==='Enter'){addCategoryToArticle(); event.preventDefault();}"
+                           onfocus="showCategorySuggestions()"
+                           oninput="filterCategorySuggestions()"
+                           onblur="hideCategorySuggestions()">
+                    
+                    <!-- Dropdown suggestions -->
+                    <div id="categorySuggestions" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #ddd; border-radius: 5px; margin-top: 2px; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <!-- Suggestions will be loaded here -->
+                    </div>
+                </div>
+                
+                <div id="articleCategories" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; margin-bottom: 8px; min-height: 32px;">
+                    <!-- Categories will be loaded here -->
+                </div>
+                <button onclick="addCategoryToArticle()" id="addCategoryBtn" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600;">
+                    ➕ Thêm Category
+                </button>
+                
+                <div style="margin-top: 10px; padding: 8px; background: #e8f5e9; border-radius: 5px; font-size: 11px; color: #2e7d32;">
+                    💡 <strong>Mẹo:</strong> Tối đa 5 categories/bài viết. Hệ thống có tối đa 100 categories.
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Cache & Danger Zone Group -->
     <div class="settings-section">
         <button onclick="toggleSection('dangerSettings')" class="settings-group-btn" style="background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);">
             ⚠️ Vùng nguy hiểm <span id="dangerSettingsIcon">▼</span>
         </button>
         <div id="dangerSettings" class="settings-group-content" style="display: none;">
-            <!-- Category Management -->
-            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
-                <label style="display: block; font-size: 13px; font-weight: bold; color: #555; margin-bottom: 8px;">
-                    📁 Quản lý Categories
-                </label>
-                <input type="text" id="categoryInput" placeholder="Thêm category mới..."
-                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 12px; margin-bottom: 8px;"
-                       onkeypress="if(event.key==='Enter'){addCategoryToArticle(); event.preventDefault();}">
-                <div id="articleCategories" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
-                    <!-- Categories will be loaded here -->
-                </div>
-                <button onclick="addCategoryToArticle()" style="width: 100%; padding: 8px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; margin-top: 8px;">
-                    ➕ Thêm Category
-                </button>
-            </div>
-            
             <!-- Clear Cache Button -->
             <div style="margin-top: 10px;">
                 <button onclick="clearIPACache()" class="danger-btn" style="width: 100%; padding: 10px; background: #f39c12; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
@@ -1893,7 +1917,7 @@
     
     // Restore section states on load
     function restoreSectionStates() {
-        const sections = ['displaySettings', 'ipaSettings', 'textSettings', 'fontSettings', 'dangerSettings'];
+        const sections = ['displaySettings', 'ipaSettings', 'textSettings', 'fontSettings', 'categorySettings', 'dangerSettings'];
         
         sections.forEach(sectionId => {
             const state = localStorage.getItem('section_' + sectionId);
@@ -2399,6 +2423,22 @@
     
     // Category Management Functions
     let articleCategories = [];
+    let allSystemCategories = []; // All categories in system
+    const MAX_CATEGORIES_PER_ARTICLE = 5;
+    const MAX_SYSTEM_CATEGORIES = 100;
+    
+    async function loadAllSystemCategories() {
+        try {
+            const response = await fetch('/api/categories');
+            const data = await response.json();
+            
+            if (data.success) {
+                allSystemCategories = data.categories.map(c => c.name).sort();
+            }
+        } catch (error) {
+            console.error('Failed to load system categories:', error);
+        }
+    }
     
     async function loadArticleCategories() {
         try {
@@ -2408,10 +2448,91 @@
             if (data.success) {
                 articleCategories = data.categories.map(c => c.name);
                 displayCategories();
+                updateCategoryCount();
             }
         } catch (error) {
             console.error('Failed to load categories:', error);
         }
+    }
+    
+    function updateCategoryCount() {
+        const countEl = document.getElementById('categoryCount');
+        const addBtn = document.getElementById('addCategoryBtn');
+        if (countEl) {
+            countEl.textContent = `(${articleCategories.length}/${MAX_CATEGORIES_PER_ARTICLE})`;
+            countEl.style.color = articleCategories.length >= MAX_CATEGORIES_PER_ARTICLE ? '#e74c3c' : '#999';
+        }
+        if (addBtn) {
+            addBtn.disabled = articleCategories.length >= MAX_CATEGORIES_PER_ARTICLE;
+            addBtn.style.opacity = articleCategories.length >= MAX_CATEGORIES_PER_ARTICLE ? '0.5' : '1';
+            addBtn.style.cursor = articleCategories.length >= MAX_CATEGORIES_PER_ARTICLE ? 'not-allowed' : 'pointer';
+        }
+    }
+    
+    function showCategorySuggestions() {
+        const suggestions = document.getElementById('categorySuggestions');
+        if (suggestions) {
+            filterCategorySuggestions();
+            suggestions.style.display = 'block';
+        }
+    }
+    
+    function hideCategorySuggestions() {
+        setTimeout(() => {
+            const suggestions = document.getElementById('categorySuggestions');
+            if (suggestions) {
+                suggestions.style.display = 'none';
+            }
+        }, 200);
+    }
+    
+    function filterCategorySuggestions() {
+        const input = document.getElementById('categoryInput');
+        const suggestions = document.getElementById('categorySuggestions');
+        if (!input || !suggestions) return;
+        
+        const query = input.value.toLowerCase().trim();
+        
+        // Filter categories: exclude already added ones
+        let filtered = allSystemCategories.filter(cat => 
+            !articleCategories.includes(cat) &&
+            cat.toLowerCase().includes(query)
+        );
+        
+        // Add "Create new" option if input is not empty and not in existing categories
+        let html = '';
+        
+        if (filtered.length > 0) {
+            html += '<div style="padding: 6px 10px; background: #f8f9fa; font-size: 11px; color: #666; font-weight: bold;">Chọn từ danh sách:</div>';
+            filtered.forEach(cat => {
+                html += `<div onclick="selectCategory('${cat}')" style="padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #f0f0f0;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">📁 ${cat}</div>`;
+            });
+        }
+        
+        if (query && !allSystemCategories.includes(query)) {
+            const canCreateNew = allSystemCategories.length < MAX_SYSTEM_CATEGORIES;
+            if (canCreateNew) {
+                html += '<div style="padding: 6px 10px; background: #e8f5e9; font-size: 11px; color: #2e7d32; font-weight: bold; margin-top: 5px;">Tạo mới:</div>';
+                html += `<div onclick="selectCategory('${query}')" style="padding: 8px 12px; cursor: pointer; font-size: 12px; background: #e8f5e9; color: #2e7d32; font-weight: 500;" onmouseover="this.style.background='#c8e6c9'" onmouseout="this.style.background='#e8f5e9'">✨ Tạo "${query}"</div>`;
+            } else {
+                html += '<div style="padding: 8px 12px; font-size: 11px; color: #e74c3c; background: #ffebee;">⚠️ Đã đạt giới hạn 100 categories</div>';
+            }
+        }
+        
+        if (!html) {
+            html = '<div style="padding: 8px 12px; font-size: 11px; color: #999;">Không có kết quả</div>';
+        }
+        
+        suggestions.innerHTML = html;
+    }
+    
+    function selectCategory(categoryName) {
+        const input = document.getElementById('categoryInput');
+        if (input) {
+            input.value = categoryName;
+        }
+        hideCategorySuggestions();
+        addCategoryToArticle();
     }
     
     function displayCategories() {
@@ -2435,21 +2556,42 @@
             return;
         }
         
+        // Check max categories per article
+        if (articleCategories.length >= MAX_CATEGORIES_PER_ARTICLE) {
+            alert(`Mỗi bài viết chỉ được tối đa ${MAX_CATEGORIES_PER_ARTICLE} categories`);
+            return;
+        }
+        
+        // Check if category already exists in article
         if (articleCategories.includes(categoryName)) {
-            alert('Category này đã tồn tại');
+            alert('Category này đã tồn tại trong bài viết');
+            input.value = '';
+            return;
+        }
+        
+        // Check system category limit (only for new categories)
+        if (!allSystemCategories.includes(categoryName) && allSystemCategories.length >= MAX_SYSTEM_CATEGORIES) {
+            alert(`Hệ thống đã đạt giới hạn ${MAX_SYSTEM_CATEGORIES} categories. Vui lòng chọn từ danh sách có sẵn.`);
             return;
         }
         
         articleCategories.push(categoryName);
         await saveCategories();
+        
+        // Reload system categories to update the list
+        await loadAllSystemCategories();
+        
         input.value = '';
         displayCategories();
+        updateCategoryCount();
+        hideCategorySuggestions();
     }
     
     async function removeCategoryFromArticle(categoryName) {
         articleCategories = articleCategories.filter(c => c !== categoryName);
         await saveCategories();
         displayCategories();
+        updateCategoryCount();
     }
     
     async function saveCategories() {
@@ -2475,8 +2617,18 @@
         }
     }
     
+    // Close suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        const input = document.getElementById('categoryInput');
+        const suggestions = document.getElementById('categorySuggestions');
+        if (input && suggestions && !input.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.style.display = 'none';
+        }
+    });
+    
     // Load categories on page load
     document.addEventListener('DOMContentLoaded', function() {
+        loadAllSystemCategories();
         loadArticleCategories();
     });
 

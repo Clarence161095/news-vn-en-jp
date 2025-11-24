@@ -360,8 +360,9 @@ def index():
         except re.error:
             flash('Invalid regex pattern', 'error')
     
-    # Get all categories for filter UI
-    all_categories = conn.execute('SELECT DISTINCT name FROM categories ORDER BY name').fetchall()
+    # Get all categories for filter UI - Convert Row to dict/list
+    all_categories_raw = conn.execute('SELECT DISTINCT name FROM categories ORDER BY name').fetchall()
+    all_categories = [{'name': row['name']} for row in all_categories_raw]
     
     conn.close()
     

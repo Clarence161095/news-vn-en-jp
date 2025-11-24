@@ -246,42 +246,69 @@
 <!-- Search & Filter Section -->
 <div class="search-filter-container">
     <form id="searchForm" method="GET" action="{{ url_for('index') }}">
-        <div class="search-box">
-            <div class="search-input-wrapper">
-                <!-- Selected Categories Display -->
-                <div id="selectedCategories" class="category-tags"></div>
+        <!-- Row 1: Keyword Search -->
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 8px;">
+                🔍 Tìm kiếm theo từ khóa (tiêu đề hoặc nội dung)
+            </label>
+            <div class="search-box">
+                <div class="search-input-wrapper" style="flex: 1;">
+                    <input type="text" 
+                           id="searchInput" 
+                           name="q" 
+                           placeholder="Nhập từ khóa cần tìm..."
+                           value="{{ search_query }}"
+                           autocomplete="off"
+                           style="width: 100%; padding: 12px 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+                </div>
                 
-                <input type="text" 
-                       id="searchInput" 
-                       name="q" 
-                       placeholder="🔍 Tìm kiếm theo tên hoặc nội dung... (hỗ trợ regex)"
-                       value="{{ search_query }}"
-                       autocomplete="off">
-                
-                <!-- Category Suggestions Dropdown -->
-                <div id="categorySuggestions" class="category-suggestions"></div>
+                <button type="submit" class="search-btn" style="white-space: nowrap;">
+                    🔍 Tìm kiếm
+                </button>
             </div>
             
-            <button type="submit" class="search-btn">
-                🔍 Tìm kiếm
-            </button>
+            <div style="margin-top: 8px; display: flex; gap: 15px; align-items: center;">
+                <label class="filter-checkbox">
+                    <input type="checkbox" name="regex" value="true" {% if use_regex %}checked{% endif %}>
+                    <span style="font-size: 13px;">🔧 Sử dụng Regex</span>
+                </label>
+                
+                <label class="filter-checkbox">
+                    <input type="checkbox" name="favorites" value="true" {% if favorites_only %}checked{% endif %}>
+                    <span style="font-size: 13px;">❤️ Chỉ xem yêu thích</span>
+                </label>
+            </div>
         </div>
         
-        <div class="filter-options">
-            <label class="filter-checkbox">
-                <input type="checkbox" name="regex" value="true" {% if use_regex %}checked{% endif %}>
-                <span>🔧 Sử dụng Regex</span>
+        <!-- Row 2: Category Filter -->
+        <div style="border-top: 1px solid #eee; padding-top: 15px;">
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 8px;">
+                📁 Lọc theo categories
             </label>
             
-            <label class="filter-checkbox">
-                <input type="checkbox" name="favorites" value="true" {% if favorites_only %}checked{% endif %}>
-                <span>❤️ Chỉ xem yêu thích</span>
-            </label>
+            <!-- Selected Categories Display -->
+            <div id="selectedCategories" class="category-tags" style="min-height: 32px; margin-bottom: 10px;"></div>
             
-            <!-- Show all available categories -->
-            <div style="flex: 1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
-                <span style="font-size: 12px; color: #666; font-weight: 500;">📁 Lọc nhanh:</span>
-                <div id="quickCategoryFilters"></div>
+            <!-- Category Dropdown Trigger -->
+            <div style="position: relative;">
+                <button type="button" 
+                        id="categoryDropdownBtn"
+                        onclick="toggleCategoryDropdown()"
+                        style="padding: 10px 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; width: 100%; text-align: left; display: flex; justify-content: space-between; align-items: center;">
+                    <span>📁 Chọn categories...</span>
+                    <span id="dropdownIcon">▼</span>
+                </button>
+                
+                <!-- Category Dropdown Menu -->
+                <div id="categoryDropdown" 
+                     style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #667eea; border-radius: 8px; margin-top: 5px; max-height: 250px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                    <div id="categoryList" style="padding: 5px;"></div>
+                    <div style="padding: 10px; border-top: 1px solid #eee; background: #f8f9fa;">
+                        <p style="margin: 0; font-size: 12px; color: #888; text-align: center;">
+                            💡 Chọn nhiều categories để lọc
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -308,9 +335,13 @@
             {% if article['is_favorite'] %}❤️{% else %}🤍{% endif %}
         </button>
         
-        <h3 style="color: #2c3e50; margin-bottom: 5px; padding-right: 50px;">
-            {{ article['title_vi'] or article['title_en'] }}
-        </h3>
+        <a href="{{ url_for('article_detail', article_id=article['id'], lang='both') }}" 
+           style="text-decoration: none; color: inherit;">
+            <h3 style="color: #2c3e50; margin-bottom: 5px; padding-right: 50px; cursor: pointer; transition: color 0.2s;"
+                onmouseover="this.style.color='#3498db'" onmouseout="this.style.color='#2c3e50'">
+                {{ article['title_vi'] or article['title_en'] }}
+            </h3>
+        </a>
         
         {% if article['title_en'] and article['title_vi'] %}
         <p style="color: #7f8c8d; font-size: 0.95em; margin-bottom: 15px; font-style: italic;">
@@ -370,6 +401,63 @@
     // Category management
     let selectedCategories = {{ selected_categories|tojson if selected_categories else '[]' }};
     let allCategories = {{ all_categories|tojson if all_categories else '[]' }};
+    let dropdownOpen = false;
+    
+    // Toggle category dropdown
+    function toggleCategoryDropdown() {
+        dropdownOpen = !dropdownOpen;
+        const dropdown = document.getElementById('categoryDropdown');
+        const icon = document.getElementById('dropdownIcon');
+        
+        if (dropdownOpen) {
+            dropdown.style.display = 'block';
+            icon.textContent = '▲';
+            displayCategoryList();
+        } else {
+            dropdown.style.display = 'none';
+            icon.textContent = '▼';
+        }
+    }
+    
+    // Display all categories as checkboxes
+    function displayCategoryList() {
+        const container = document.getElementById('categoryList');
+        if (!container) return;
+        
+        if (allCategories.length === 0) {
+            container.innerHTML = '<p style="padding: 15px; text-align: center; color: #888; font-size: 13px;">Chưa có category nào. Tạo category trong bài viết!</p>';
+            return;
+        }
+        
+        container.innerHTML = allCategories.map(c => {
+            const catName = c.name;
+            const isSelected = selectedCategories.includes(catName);
+            return `
+                <label style="display: flex; align-items: center; padding: 10px 12px; cursor: pointer; transition: background 0.2s; border-radius: 5px; margin: 2px 0;"
+                       onmouseover="this.style.background='#f0f7fb'"
+                       onmouseout="this.style.background='transparent'">
+                    <input type="checkbox" 
+                           ${isSelected ? 'checked' : ''}
+                           onchange="toggleCategorySelection('${catName.replace(/'/g, "\\'")}')"
+                           style="width: 18px; height: 18px; margin-right: 10px; cursor: pointer;">
+                    <span style="font-size: 14px; color: #2c3e50; font-weight: ${isSelected ? '600' : '400'};">
+                        📁 ${catName}
+                    </span>
+                </label>
+            `;
+        }).join('');
+    }
+    
+    // Toggle category selection
+    function toggleCategorySelection(categoryName) {
+        if (selectedCategories.includes(categoryName)) {
+            selectedCategories = selectedCategories.filter(c => c !== categoryName);
+        } else {
+            selectedCategories.push(categoryName);
+        }
+        updateCategoryTags();
+        displayCategoryList(); // Refresh checkboxes
+    }
     
     // Initialize selected categories display
     function updateCategoryTags() {
@@ -379,115 +467,48 @@
         container.innerHTML = '';
         hiddenContainer.innerHTML = '';
         
-        selectedCategories.forEach(cat => {
-            const tag = document.createElement('div');
-            tag.className = 'category-tag';
-            tag.innerHTML = `
-                <span>${cat}</span>
-                <span class="remove" onclick="removeCategory('${cat.replace(/'/g, "\\'")}')">×</span>
-            `;
-            container.appendChild(tag);
-            
-            // Add hidden input for form submission
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'categories';
-            input.value = cat;
-            hiddenContainer.appendChild(input);
-        });
-    }
-    
-    // Display quick filter buttons for all available categories
-    function displayQuickFilters() {
-        const container = document.getElementById('quickCategoryFilters');
-        if (!container || allCategories.length === 0) return;
-        
-        container.innerHTML = allCategories.map(c => {
-            const catName = c.name;
-            const isSelected = selectedCategories.includes(catName);
-            return `
-                <button type="button" 
-                        onclick="toggleQuickCategory('${catName.replace(/'/g, "\\'")}')"
-                        style="padding: 4px 10px; 
-                               background: ${isSelected ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#ecf0f1'}; 
-                               color: ${isSelected ? 'white' : '#2c3e50'}; 
-                               border: ${isSelected ? 'none' : '1px solid #ddd'};
-                               border-radius: 15px; 
-                               font-size: 11px; 
-                               cursor: pointer; 
-                               transition: all 0.2s;
-                               font-weight: ${isSelected ? '600' : '400'};">
-                    ${isSelected ? '✓ ' : ''}${catName}
-                </button>
-            `;
-        }).join('');
-    }
-    
-    function toggleQuickCategory(categoryName) {
-        if (selectedCategories.includes(categoryName)) {
-            removeCategory(categoryName);
+        if (selectedCategories.length === 0) {
+            container.innerHTML = '<p style="margin: 0; padding: 8px 12px; color: #999; font-size: 13px; font-style: italic;">Chưa chọn category nào</p>';
         } else {
-            addCategory(categoryName);
+            selectedCategories.forEach(cat => {
+                const tag = document.createElement('div');
+                tag.className = 'category-tag';
+                tag.innerHTML = `
+                    <span>📁 ${cat}</span>
+                    <span class="remove" onclick="removeCategory('${cat.replace(/'/g, "\\'")}')">×</span>
+                `;
+                container.appendChild(tag);
+                
+                // Add hidden input for form submission
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'categories';
+                input.value = cat;
+                hiddenContainer.appendChild(input);
+            });
         }
-    }
-    
-    function addCategory(categoryName) {
-        if (!selectedCategories.includes(categoryName)) {
-            selectedCategories.push(categoryName);
-            updateCategoryTags();
-            displayQuickFilters();
-        }
-        document.getElementById('searchInput').value = '';
-        document.getElementById('categorySuggestions').style.display = 'none';
     }
     
     function removeCategory(categoryName) {
         selectedCategories = selectedCategories.filter(c => c !== categoryName);
         updateCategoryTags();
-        displayQuickFilters();
+        if (dropdownOpen) {
+            displayCategoryList(); // Refresh checkboxes
+        }
     }
     
-    // Search input autocomplete
-    const searchInput = document.getElementById('searchInput');
-    const suggestions = document.getElementById('categorySuggestions');
-    
-    searchInput.addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim();
-        
-        if (!query) {
-            suggestions.style.display = 'none';
-            return;
-        }
-        
-        // Filter categories
-        const matches = allCategories
-            .map(c => c.name)
-            .filter(name => !selectedCategories.includes(name) && name.toLowerCase().includes(query));
-        
-        if (matches.length === 0) {
-            suggestions.style.display = 'none';
-            return;
-        }
-        
-        // Show suggestions
-        suggestions.innerHTML = matches.map(name => `
-            <div class="category-suggestion-item" onclick="addCategory('${name}')">
-                📁 ${name}
-            </div>
-        `).join('');
-        suggestions.style.display = 'block';
-    });
-    
-    // Close suggestions when clicking outside
+    // Close dropdown when clicking outside
     document.addEventListener('click', function(e) {
-        if (!e.target.closest('.search-input-wrapper')) {
-            suggestions.style.display = 'none';
+        const dropdown = document.getElementById('categoryDropdown');
+        const btn = document.getElementById('categoryDropdownBtn');
+        
+        if (dropdownOpen && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+            toggleCategoryDropdown();
         }
     });
     
     // Initialize on page load
     updateCategoryTags();
-    displayQuickFilters();
     
     // Load article categories
     async function loadArticleCategories(articleId) {
