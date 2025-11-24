@@ -1009,28 +1009,12 @@
         50% { opacity: 1; }
     }
     
-    /* Mobile responsive */
+    /* Mobile responsive - Keep 2-column layout on all devices */
     @media (max-width: 768px) {
-        .bilingual-sync-container {
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-        
-        .bilingual-divider {
-            display: none;
-        }
-        
+        /* Adjust column padding for smaller screens */
         .bilingual-column {
-            max-height: none;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            overflow-y: visible;
-            scroll-behavior: smooth;
-        }
-        
-        .bilingual-vi,
-        .bilingual-en {
-            border: none;
+            padding: 10px;
+            font-size: 0.9em;
         }
         
         .settings-btn {
@@ -1078,6 +1062,18 @@
         .article-content ul,
         .article-content ol {
             padding-left: 1.5em;
+        }
+        
+        /* Smaller font for bilingual mode on mobile */
+        .bilingual-content {
+            font-size: 0.85em;
+        }
+        
+        /* Smaller column width controls on mobile */
+        .width-slider::-webkit-slider-thumb,
+        .width-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
         }
     }
 </style>
@@ -1250,6 +1246,13 @@
     <!-- Delete Article Button -->
     <div class="settings-section" style="border-top: 2px solid #e74c3c; padding-top: 15px; margin-top: 10px;">
         <span class="settings-label" style="color: #e74c3c;">⚠️ Vùng nguy hiểm</span>
+        
+        <!-- Clear IPA Cache Button -->
+        <button onclick="clearIPACache()" 
+                style="width: 100%; padding: 12px; margin-bottom: 10px; background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.2s;">
+            🔄 Tạo lại IPA (Bài này)
+        </button>
+        
         <form action="{{ url_for('delete_article', article_id=article['id']) }}" method="POST" 
               onsubmit="return confirm('Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác!');" 
               style="margin-top: 10px;">
@@ -1812,5 +1815,49 @@
             toggleAllIPA();
         }
     });
+    
+    // Clear IPA Cache function - Only for current article
+    async function clearIPACache() {
+        const articleId = parseInt('{{ article["id"] }}');
+        
+        if (!confirm('Xóa cache IPA và tạo lại cho bài viết này?\n\nIPA sẽ được tạo lại ngay lập tức với thuật toán mới (coverage ~100%).')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/clear-ipa-cache/${articleId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            // Check if response is OK
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                throw new Error(`Response is not JSON: ${text.substring(0, 100)}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('✅ ' + data.message);
+                // Reload page to regenerate IPA for this article
+                window.location.reload();
+            } else {
+                alert('❌ Lỗi: ' + (data.error || 'Không thể xóa cache'));
+            }
+        } catch (error) {
+            alert('❌ Lỗi: ' + error.message);
+            console.error('Clear IPA Cache Error:', error);
+        }
+    }
+
 </script>
 {% endblock %}

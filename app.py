@@ -68,117 +68,101 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
-# ==================== TỰ ĐỘNG TẠO IPA (OPTIMIZED) ====================
+# ==================== TỰ ĐỘNG TẠO IPA (FIXED & OPTIMIZED) ====================
 def generate_ipa_html(text):
     """
     Tự động chuyển đổi văn bản tiếng Anh sang HTML với IPA trong ruby tags
-    OPTIMIZED: Cache IPA lookups, batch processing
-    IMPROVED: Preserve table and list formatting
+    FIXED: Process ALL words, not just some
+    OPTIMIZED: Cache IPA lookups to improve performance
     """
     if not IPA_AVAILABLE or not text:
         return text
     
     try:
-        # Tách thành các đoạn HTML và text - optimize với compiled regex
-        # Preserve complete HTML blocks (tables, lists, etc.)
-        html_parts = re.split(r'(<(?:table|tr|td|th|ul|ol|li|div|p|h[1-6])[^>]*>.*?</(?:table|tr|td|th|ul|ol|li|div|p|h[1-6])>|<[^>]+>)', text, flags=re.DOTALL)
         result = []
+        ipa_cache = {}  # Cache IPA conversions
         
-        # Cache IPA trong scope của function để tránh lookup trùng lặp
-        ipa_cache = {}
-        
-        for part in html_parts:
-            if not part:
-                continue
+        # Strategy: Process character by character, identifying HTML tags vs text
+        i = 0
+        while i < len(text):
+            # Check if we're at an HTML tag
+            if text[i] == '<':
+                # Find the end of the tag
+                tag_end = text.find('>', i)
+                if tag_end == -1:
+                    # Malformed HTML, treat as text
+                    result.append(text[i])
+                    i += 1
+                    continue
                 
-            # Nếu là HTML tag hoặc HTML block, giữ nguyên structure nhưng process text bên trong
-            if part.startswith('<'):
-                # Check if it's a complete HTML block (table, list, etc.)
-                if re.match(r'<(?:table|ul|ol)', part):
-                    # For tables and lists, preserve structure but process text in cells/items
-                    processed_block = process_html_block(part, ipa_cache)
-                    result.append(processed_block)
-                else:
-                    # Simple tag, keep as is
-                    result.append(part)
+                # Extract full tag
+                tag = text[i:tag_end + 1]
+                result.append(tag)
+                i = tag_end + 1
             else:
-                # Xử lý text: tách thành từng từ
-                words = re.findall(r'\b[\w\']+\b|[^\w\s]|\s+', part)
-                for word in words:
-                    # Nếu là từ (không phải dấu câu hoặc khoảng trắng)
-                    if re.match(r'\b[\w\']+\b', word):
-                        # Check cache trước
-                        word_lower = word.lower()
-                        if word_lower in ipa_cache:
-                            ipa_text = ipa_cache[word_lower]
-                        else:
-                            try:
-                                ipa_text = ipa.convert(word)
-                                ipa_cache[word_lower] = ipa_text
-                            except:
-                                ipa_text = None
-                        
-                        # Chỉ thêm ruby tag nếu có IPA
-                        if ipa_text and ipa_text != word:
-                            result.append(f'<ruby>{word}<rt>{ipa_text}</rt></ruby>')
-                        else:
-                            result.append(word)
-                    else:
-                        result.append(word)
+                # We're in text content - extract until next tag
+                next_tag = text.find('<', i)
+                if next_tag == -1:
+                    # No more tags, process rest of text
+                    text_content = text[i:]
+                    result.append(process_text_with_ipa(text_content, ipa_cache))
+                    break
+                else:
+                    # Process text until next tag
+                    text_content = text[i:next_tag]
+                    result.append(process_text_with_ipa(text_content, ipa_cache))
+                    i = next_tag
         
         return ''.join(result)
     except Exception as e:
         print(f"Error generating IPA: {e}")
+        import traceback
+        traceback.print_exc()
         return text
+
+
+def process_text_with_ipa(text, ipa_cache):
+    """
+    Process plain text and wrap each word with IPA ruby tags
+    """
+    if not text or not text.strip():
+        return text
+    
+    result = []
+    # Split into words, punctuation, and whitespace
+    tokens = re.findall(r'\b[\w\']+\b|[^\w\s]|\s+', text)
+    
+    for token in tokens:
+        # Check if it's a word (not punctuation or whitespace)
+        if re.match(r'\b[\w\']+\b', token):
+            # Check cache first
+            token_lower = token.lower()
+            if token_lower in ipa_cache:
+                ipa_text = ipa_cache[token_lower]
+            else:
+                try:
+                    ipa_text = ipa.convert(token)
+                    ipa_cache[token_lower] = ipa_text
+                except:
+                    ipa_text = None
+            
+            # Add ruby tag if IPA is available and different from original
+            if ipa_text and ipa_text != token:
+                result.append(f'<ruby>{token}<rt>{ipa_text}</rt></ruby>')
+            else:
+                result.append(token)
+        else:
+            # Punctuation or whitespace - keep as is
+            result.append(token)
+    
+    return ''.join(result)
 
 
 def process_html_block(html_block, ipa_cache):
     """
-    Process HTML blocks (tables, lists) while preserving structure
+    DEPRECATED: No longer used - kept for compatibility
     """
-    try:
-        # Extract text content from tags and process them
-        def replace_text_content(match):
-            tag = match.group(1)
-            content = match.group(2)
-            closing = match.group(3)
-            
-            # Skip if content is empty or only whitespace
-            if not content or content.isspace():
-                return match.group(0)
-            
-            # Process text content with IPA
-            words = re.findall(r'\b[\w\']+\b|[^\w\s]|\s+', content)
-            processed = []
-            
-            for word in words:
-                if re.match(r'\b[\w\']+\b', word):
-                    word_lower = word.lower()
-                    if word_lower in ipa_cache:
-                        ipa_text = ipa_cache[word_lower]
-                    else:
-                        try:
-                            ipa_text = ipa.convert(word)
-                            ipa_cache[word_lower] = ipa_text
-                        except:
-                            ipa_text = None
-                    
-                    if ipa_text and ipa_text != word:
-                        processed.append(f'<ruby>{word}<rt>{ipa_text}</rt></ruby>')
-                    else:
-                        processed.append(word)
-                else:
-                    processed.append(word)
-            
-            return tag + ''.join(processed) + closing
-        
-        # Process content inside td, th, li tags
-        pattern = r'(<(?:td|th|li)[^>]*>)(.*?)(</(?:td|th|li)>)'
-        result = re.sub(pattern, replace_text_content, html_block, flags=re.DOTALL)
-        
-        return result
-    except:
-        return html_block
+    return html_block
 
 # ==================== XỬ LÝ BÀI VIẾT ====================
 def process_article_content(article):
@@ -368,6 +352,40 @@ def api_article(article_id):
     # Xử lý và trả về JSON với IPA
     article = process_article_content(article_raw)
     return jsonify(dict(article))
+
+# API endpoint to clear IPA cache for specific article
+@app.route('/api/clear-ipa-cache/<int:article_id>', methods=['POST'])
+def clear_ipa_cache(article_id):
+    """Clear IPA cache for a specific article"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if article exists
+        article = cursor.execute('SELECT id FROM articles WHERE id = ?', (article_id,)).fetchone()
+        if not article:
+            conn.close()
+            return jsonify({
+                'success': False,
+                'error': 'Bài viết không tồn tại'
+            }), 404
+        
+        # Delete cache for this article
+        cursor.execute('DELETE FROM article_cache WHERE article_id = ?', (article_id,))
+        deleted = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Đã xóa cache cho bài viết này. IPA sẽ được tạo lại ngay bây giờ.',
+            'deleted': deleted
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 if __name__ == '__main__':
     init_db()
