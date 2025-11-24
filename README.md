@@ -112,9 +112,9 @@ bash reset.sh
 ### 1. Đặt Tên User (BẮT BUỘC trước khi import)
 
 1. Click biểu tượng **👤** ở góc phải
-2. Nhập tên của bạn (ví dụ: "Clarence")
+2. Nhập tên của bạn (ví dụ: "John", "Alice", "Minh")
 3. Click **Lưu**
-4. Tên sẽ hiển thị: "👤 Xin chào, **Clarence**!"
+4. Tên sẽ hiển thị: "👤 Xin chào, **[Tên của bạn]**!"
 
 > ⚠️ **LƯU Ý**: Phải đặt tên trước khi import, nếu không bạn sẽ **không thể xóa** bài viết sau này!
 
@@ -154,7 +154,7 @@ bash reset.sh
 ```
 
 **Kết quả:**
-- Bài viết sẽ có **2 categories**: Username (Clarence) + JSON category (news/technology/etc)
+- Bài viết sẽ có **2 categories**: Username (John/Alice/etc) + JSON category (news/technology/etc)
 - IPA tự động tạo khi xem bài (không cần thêm vào JSON)
 - Bạn có thể xóa bài vì có category của mình
 
@@ -560,7 +560,7 @@ MIT License - Free to use and modify
 
 ## 👥 Contributors
 
-- **Clarence** - Initial work & main developer
+- **Your Name** - Initial work & main developer
 - **AI Assistant** - Code implementation & documentation
 
 ---

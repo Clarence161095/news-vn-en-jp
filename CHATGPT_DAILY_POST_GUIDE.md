@@ -2,8 +2,8 @@
 
 ## 📋 Thông Tin Hệ Thống
 
-**Website**: http://16.176.182.214/  
-**API Endpoint**: `http://16.176.182.214/api/import`  
+**Website**: http://13.54.199.93:5000/  
+**API Endpoint**: `http://13.54.199.93:5000/api/import`  
 **Phương thức**: `POST`  
 **Authentication**: Không cần (Open API)  
 **Content-Type**: `application/json`
@@ -91,7 +91,7 @@ Bạn có thể dùng bất kỳ category nào, ví dụ:
 Bạn hãy viết cho tôi 1 bài viết song ngữ Việt-Anh về chủ đề [CHỦ ĐỀ].
 Sau đó, hãy gọi API sau để đăng bài:
 
-POST http://16.176.182.214/api/import
+POST http://13.54.199.93:5000/api/import
 Content-Type: application/json
 
 Body:
@@ -118,7 +118,7 @@ Yêu cầu:
 
 ```
 Viết 1 bài về "Lợi ích của việc học tiếng Anh" rồi đăng lên 
-http://16.176.182.214/api/import với category "education"
+http://13.54.199.93:5000/api/import với category "education"
 ```
 
 ---
@@ -168,7 +168,7 @@ http://16.176.182.214/api/import với category "education"
 ### Test đăng 1 bài:
 
 ```bash
-curl -X POST http://16.176.182.214/api/import \
+curl -X POST http://13.54.199.93:5000/api/import \
   -H "Content-Type: application/json" \
   -d '{
     "articles": [
@@ -186,7 +186,7 @@ curl -X POST http://16.176.182.214/api/import \
 ### Test đăng nhiều bài:
 
 ```bash
-curl -X POST http://16.176.182.214/api/import \
+curl -X POST http://13.54.199.93:5000/api/import \
   -H "Content-Type: application/json" \
   -d '{
     "articles": [
@@ -278,7 +278,7 @@ curl -X POST http://16.176.182.214/api/import \
 
 ```
 Hôm nay là [THỨ], hãy viết 1 bài về [CHỦ ĐỀ THEO LỊCH] 
-và đăng lên http://16.176.182.214/api/import
+và đăng lên http://13.54.199.93:5000/api/import
 
 Yêu cầu:
 - Nội dung 500-800 từ mỗi ngôn ngữ
@@ -322,8 +322,8 @@ Yêu cầu:
 
 ## 📞 Support
 
-**Website**: http://16.176.182.214/  
-**API Docs**: http://16.176.182.214/api/docs (nếu có)
+**Website**: http://13.54.199.93:5000/  
+**API Docs**: http://13.54.199.93:5000/api/docs (nếu có)
 **GitHub**: https://github.com/Clarence161095/news-vn-en-jp
 
 ---
@@ -337,7 +337,7 @@ Viết 1 bài về "10 Lợi Ích Của Việc Đọc Sách Hàng Ngày"
 bằng tiếng Việt và tiếng Anh, mỗi bên 600 từ.
 
 Sau đó POST lên API này:
-http://16.176.182.214/api/import
+http://13.54.199.93:5000/api/import
 
 JSON format:
 {
@@ -367,7 +367,7 @@ Kết quả:
 - Article ID: 42
 - Tiêu đề: "10 Lợi Ích Của Việc Đọc Sách Hàng Ngày"
 - Categories: Bot, education
-- Link: http://16.176.182.214/article/42
+- Link: http://13.54.199.93:5000/article/42
 
 Response từ API:
 {
@@ -386,7 +386,7 @@ Copy prompt này và paste vào ChatGPT:
 
 ```
 Từ bây giờ, mỗi ngày bạn sẽ viết 1 bài song ngữ Việt-Anh 
-và tự động đăng lên http://16.176.182.214/api/import
+và tự động đăng lên http://13.54.199.93:5000/api/import
 
 Lịch đăng bài:
 - Thứ 2: Technology
