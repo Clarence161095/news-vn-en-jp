@@ -1,14 +1,314 @@
 {% extends "base.html" %}
 
-{% block title %}Trang Chu - Doc Bao Song Ngu{% endblock %}
+{% block title %}Trang Chủ - Đọc Báo Song Ngữ{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Search & Filter Section */
+    .search-filter-container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 25px;
+    }
+    
+    body.dark-mode .search-filter-container {
+        background: #2c2c2c;
+        border: 1px solid #444;
+    }
+    
+    .search-box {
+        display: flex;
+        gap: 10px;
+        align-items: stretch;
+        margin-bottom: 15px;
+    }
+    
+    .search-input-wrapper {
+        flex: 1;
+        position: relative;
+    }
+    
+    #searchInput {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+    }
+    
+    #searchInput:focus {
+        outline: none;
+        border-color: #3498db;
+    }
+    
+    body.dark-mode #searchInput {
+        background: #3c3c3c;
+        border-color: #555;
+        color: #e0e0e0;
+    }
+    
+    .search-btn {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 16px;
+        transition: all 0.3s;
+        white-space: nowrap;
+    }
+    
+    .search-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+    }
+    
+    .filter-options {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: center;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+    }
+    
+    body.dark-mode .filter-options {
+        border-top-color: #444;
+    }
+    
+    .filter-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+    
+    .filter-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    
+    /* Category Tags */
+    .category-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    
+    .category-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .category-tag:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 8px rgba(102, 126, 234, 0.4);
+    }
+    
+    .category-tag .remove {
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 16px;
+    }
+    
+    .category-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 2px solid #3498db;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+    
+    body.dark-mode .category-suggestions {
+        background: #3c3c3c;
+        border-color: #3498db;
+    }
+    
+    .category-suggestion-item {
+        padding: 10px 15px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    
+    .category-suggestion-item:hover {
+        background: #f0f7fb;
+    }
+    
+    body.dark-mode .category-suggestion-item:hover {
+        background: #4a4a4a;
+    }
+    
+    /* Article Card Enhancements */
+    .article-card {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    
+    .favorite-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        transition: transform 0.2s;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+    
+    .favorite-btn:hover {
+        transform: scale(1.2);
+    }
+    
+    .favorite-btn.is-favorite {
+        animation: heartBeat 0.5s;
+    }
+    
+    @keyframes heartBeat {
+        0%, 100% { transform: scale(1); }
+        25% { transform: scale(1.3); }
+        50% { transform: scale(1.1); }
+        75% { transform: scale(1.25); }
+    }
+    
+    .article-categories {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+    }
+    
+    .article-category-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        background: #ecf0f1;
+        color: #2c3e50;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    
+    body.dark-mode .article-category-badge {
+        background: #4a4a4a;
+        color: #e0e0e0;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 60px 20px;
+        color: #888;
+    }
+    
+    .no-results h3 {
+        color: #888;
+        margin-bottom: 10px;
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .search-box {
+            flex-direction: column;
+        }
+        
+        .filter-options {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
 
 {% block content %}
-<h2 style="margin-bottom: 20px; color: #2c3e50;">Danh Sach Bai Viet</h2>
+<!-- Search & Filter Section -->
+<div class="search-filter-container">
+    <form id="searchForm" method="GET" action="{{ url_for('index') }}">
+        <div class="search-box">
+            <div class="search-input-wrapper">
+                <!-- Selected Categories Display -->
+                <div id="selectedCategories" class="category-tags"></div>
+                
+                <input type="text" 
+                       id="searchInput" 
+                       name="q" 
+                       placeholder="🔍 Tìm kiếm theo tên hoặc nội dung... (hỗ trợ regex)"
+                       value="{{ search_query }}"
+                       autocomplete="off">
+                
+                <!-- Category Suggestions Dropdown -->
+                <div id="categorySuggestions" class="category-suggestions"></div>
+            </div>
+            
+            <button type="submit" class="search-btn">
+                🔍 Tìm kiếm
+            </button>
+        </div>
+        
+        <div class="filter-options">
+            <label class="filter-checkbox">
+                <input type="checkbox" name="regex" value="true" {% if use_regex %}checked{% endif %}>
+                <span>🔧 Sử dụng Regex</span>
+            </label>
+            
+            <label class="filter-checkbox">
+                <input type="checkbox" name="favorites" value="true" {% if favorites_only %}checked{% endif %}>
+                <span>❤️ Chỉ xem yêu thích</span>
+            </label>
+            
+            <!-- Show all available categories -->
+            <div style="flex: 1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                <span style="font-size: 12px; color: #666; font-weight: 500;">📁 Lọc nhanh:</span>
+                <div id="quickCategoryFilters"></div>
+            </div>
+        </div>
+        
+        <!-- Hidden inputs for selected categories (multiple) -->
+        <div id="hiddenCategoryInputs"></div>
+    </form>
+</div>
+
+<h2 style="margin-bottom: 20px; color: #2c3e50;">
+    {% if search_query or selected_categories or favorites_only %}
+        Kết quả tìm kiếm ({{ articles|length }} bài)
+    {% else %}
+        Danh Sách Bài Viết ({{ articles|length }})
+    {% endif %}
+</h2>
 
 {% if articles %}
     {% for article in articles %}
-    <div class="card">
-        <h3 style="color: #2c3e50; margin-bottom: 5px;">
+    <div class="card article-card">
+        <!-- Favorite Button -->
+        <button class="favorite-btn {% if article['is_favorite'] %}is-favorite{% endif %}" 
+                onclick="toggleFavorite({{ article['id'] }}, this)"
+                title="{% if article['is_favorite'] %}Bỏ yêu thích{% else %}Thêm vào yêu thích{% endif %}">
+            {% if article['is_favorite'] %}❤️{% else %}🤍{% endif %}
+        </button>
+        
+        <h3 style="color: #2c3e50; margin-bottom: 5px; padding-right: 50px;">
             {{ article['title_vi'] or article['title_en'] }}
         </h3>
         
@@ -19,41 +319,276 @@
         {% endif %}
         
         <p style="color: #888; font-size: 0.9em; margin-bottom: 10px;">
-            {{ article['created_at'] }}
-            {% if article['category'] %}
-            | {{ article['category'] }}
-            {% endif %}
+            📅 {{ article['created_at'] }}
         </p>
+        
+        <!-- Article Categories -->
+        <div class="article-categories" id="categories-{{ article['id'] }}">
+            <!-- Will be loaded via JavaScript -->
+        </div>
         
         <div style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
             <a href="{{ url_for('article_detail', article_id=article['id'], lang='vi') }}" 
                style="display: inline-block; padding: 10px 16px; background-color: #3498db; color: white; text-decoration: none; border-radius: 5px; font-size: 0.95em; font-weight: 500;">
-                Viet
+                🇻🇳 Việt
             </a>
             <a href="{{ url_for('article_detail', article_id=article['id'], lang='en') }}" 
                style="display: inline-block; padding: 10px 16px; background-color: #2ecc71; color: white; text-decoration: none; border-radius: 5px; font-size: 0.95em; font-weight: 500;">
-                Anh
+                🇬🇧 Anh
             </a>
             <a href="{{ url_for('article_detail', article_id=article['id'], lang='both') }}" 
                style="display: inline-block; padding: 10px 16px; background-color: #e67e22; color: white; text-decoration: none; border-radius: 5px; font-size: 0.95em; font-weight: 500;">
-                Song Ngu
+                🌍 Song Ngữ
             </a>
             
             <form action="{{ url_for('delete_article', article_id=article['id']) }}" method="POST" 
-                  onsubmit="return confirm('Ban co chac muon xoa bai viet nay?');" style="display: inline-block; margin-left: auto;">
+                  onsubmit="return confirm('Bạn có chắc muốn xóa bài viết này?');" style="display: inline-block; margin-left: auto;">
                 <button type="submit" 
                         style="padding: 10px 16px; background-color: #c0392b; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.95em; font-weight: 500;">
-                    Xoa
+                    🗑️ Xóa
                 </button>
             </form>
         </div>
     </div>
     {% endfor %}
 {% else %}
-    <div class="card">
-        <p style="text-align: center; color: #888; padding: 40px;">
-            Chua co bai viet nao. Hay <a href="{{ url_for('import_articles') }}" style="color: #3498db;">import JSON</a> de them noi dung!
-        </p>
+    <div class="card no-results">
+        {% if search_query or selected_categories or favorites_only %}
+            <h3>😔 Không tìm thấy bài viết nào</h3>
+            <p>Thử thay đổi từ khóa hoặc bộ lọc</p>
+            <a href="{{ url_for('index') }}" style="color: #3498db; text-decoration: none; font-weight: bold;">
+                ← Xem tất cả bài viết
+            </a>
+        {% else %}
+            <h3>📝 Chưa có bài viết nào</h3>
+            <p>Hãy <a href="{{ url_for('import_articles') }}" style="color: #3498db;">import JSON</a> để thêm nội dung!</p>
+        {% endif %}
     </div>
 {% endif %}
+
+<script>
+    // Category management
+    let selectedCategories = {{ selected_categories|tojson if selected_categories else '[]' }};
+    let allCategories = {{ all_categories|tojson if all_categories else '[]' }};
+    
+    // Initialize selected categories display
+    function updateCategoryTags() {
+        const container = document.getElementById('selectedCategories');
+        const hiddenContainer = document.getElementById('hiddenCategoryInputs');
+        
+        container.innerHTML = '';
+        hiddenContainer.innerHTML = '';
+        
+        selectedCategories.forEach(cat => {
+            const tag = document.createElement('div');
+            tag.className = 'category-tag';
+            tag.innerHTML = `
+                <span>${cat}</span>
+                <span class="remove" onclick="removeCategory('${cat.replace(/'/g, "\\'")}')">×</span>
+            `;
+            container.appendChild(tag);
+            
+            // Add hidden input for form submission
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'categories';
+            input.value = cat;
+            hiddenContainer.appendChild(input);
+        });
+    }
+    
+    // Display quick filter buttons for all available categories
+    function displayQuickFilters() {
+        const container = document.getElementById('quickCategoryFilters');
+        if (!container || allCategories.length === 0) return;
+        
+        container.innerHTML = allCategories.map(c => {
+            const catName = c.name;
+            const isSelected = selectedCategories.includes(catName);
+            return `
+                <button type="button" 
+                        onclick="toggleQuickCategory('${catName.replace(/'/g, "\\'")}')"
+                        style="padding: 4px 10px; 
+                               background: ${isSelected ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#ecf0f1'}; 
+                               color: ${isSelected ? 'white' : '#2c3e50'}; 
+                               border: ${isSelected ? 'none' : '1px solid #ddd'};
+                               border-radius: 15px; 
+                               font-size: 11px; 
+                               cursor: pointer; 
+                               transition: all 0.2s;
+                               font-weight: ${isSelected ? '600' : '400'};">
+                    ${isSelected ? '✓ ' : ''}${catName}
+                </button>
+            `;
+        }).join('');
+    }
+    
+    function toggleQuickCategory(categoryName) {
+        if (selectedCategories.includes(categoryName)) {
+            removeCategory(categoryName);
+        } else {
+            addCategory(categoryName);
+        }
+    }
+    
+    function addCategory(categoryName) {
+        if (!selectedCategories.includes(categoryName)) {
+            selectedCategories.push(categoryName);
+            updateCategoryTags();
+            displayQuickFilters();
+        }
+        document.getElementById('searchInput').value = '';
+        document.getElementById('categorySuggestions').style.display = 'none';
+    }
+    
+    function removeCategory(categoryName) {
+        selectedCategories = selectedCategories.filter(c => c !== categoryName);
+        updateCategoryTags();
+        displayQuickFilters();
+    }
+    
+    // Search input autocomplete
+    const searchInput = document.getElementById('searchInput');
+    const suggestions = document.getElementById('categorySuggestions');
+    
+    searchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        
+        if (!query) {
+            suggestions.style.display = 'none';
+            return;
+        }
+        
+        // Filter categories
+        const matches = allCategories
+            .map(c => c.name)
+            .filter(name => !selectedCategories.includes(name) && name.toLowerCase().includes(query));
+        
+        if (matches.length === 0) {
+            suggestions.style.display = 'none';
+            return;
+        }
+        
+        // Show suggestions
+        suggestions.innerHTML = matches.map(name => `
+            <div class="category-suggestion-item" onclick="addCategory('${name}')">
+                📁 ${name}
+            </div>
+        `).join('');
+        suggestions.style.display = 'block';
+    });
+    
+    // Close suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-input-wrapper')) {
+            suggestions.style.display = 'none';
+        }
+    });
+    
+    // Initialize on page load
+    updateCategoryTags();
+    displayQuickFilters();
+    
+    // Load article categories
+    async function loadArticleCategories(articleId) {
+        try {
+            const response = await fetch(`/api/article/${articleId}/categories`);
+            const data = await response.json();
+            
+            if (data.success && data.categories.length > 0) {
+                const container = document.getElementById(`categories-${articleId}`);
+                container.innerHTML = data.categories.map(cat => `
+                    <span class="article-category-badge">📁 ${cat.name}</span>
+                `).join('');
+            }
+        } catch (error) {
+            console.error('Failed to load categories:', error);
+        }
+    }
+    
+    // Load categories for all articles
+    document.addEventListener('DOMContentLoaded', function() {
+        {% for article in articles %}
+        loadArticleCategories({{ article['id'] }});
+        {% endfor %}
+    });
+    
+    // Toggle favorite
+    async function toggleFavorite(articleId, button) {
+        try {
+            const response = await fetch(`/api/article/${articleId}/favorite`, {
+                method: 'POST'
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                button.textContent = data.is_favorite ? '❤️' : '🤍';
+                button.title = data.is_favorite ? 'Bỏ yêu thích' : 'Thêm vào yêu thích';
+                
+                if (data.is_favorite) {
+                    button.classList.add('is-favorite');
+                } else {
+                    button.classList.remove('is-favorite');
+                }
+                
+                // Show notification
+                showNotification(data.message);
+            }
+        } catch (error) {
+            console.error('Failed to toggle favorite:', error);
+            showNotification('❌ Lỗi khi cập nhật yêu thích');
+        }
+    }
+    
+    // Simple notification
+    function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 2000);
+    }
+    
+    // Add animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
 {% endblock %}

@@ -15,11 +15,14 @@ if sys.platform == 'win32':
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 import sqlite3
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-this-in-production-2024'
+
+# Cache expiration settings
+CACHE_EXPIRATION_DAYS = 30  # Auto-delete cache older than 30 days
 
 # Import thư viện tạo IPA cho tiếng Anh
 try:
@@ -43,6 +46,7 @@ def init_db():
             content_vi TEXT,
             content_en TEXT,
             category TEXT,
+            is_favorite INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -58,6 +62,33 @@ def init_db():
             FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
         )
     ''')
+    
+    # Categories table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Article-Category relationship (many-to-many)
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS article_categories (
+            article_id INTEGER,
+            category_id INTEGER,
+            PRIMARY KEY (article_id, category_id),
+            FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE,
+            FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+        )
+    ''')
+    
+    # Migration: Add is_favorite column if not exists
+    try:
+        c.execute('ALTER TABLE articles ADD COLUMN is_favorite INTEGER DEFAULT 0')
+        print("✅ Added is_favorite column to articles table")
+    except sqlite3.OperationalError:
+        pass  # Column already exists
     
     conn.commit()
     conn.close()
@@ -164,6 +195,39 @@ def process_html_block(html_block, ipa_cache):
     """
     return html_block
 
+# ==================== CACHE MANAGEMENT ====================
+def clean_old_cache():
+    """
+    Xóa cache cũ hơn CACHE_EXPIRATION_DAYS (30 ngày)
+    Chỉ xóa cache, KHÔNG xóa bài viết
+    Returns: số lượng cache đã xóa
+    """
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Calculate cutoff date
+        cutoff_date = datetime.now() - timedelta(days=CACHE_EXPIRATION_DAYS)
+        cutoff_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Delete old cache entries
+        cursor.execute('''
+            DELETE FROM article_cache 
+            WHERE cached_at < ?
+        ''', (cutoff_str,))
+        
+        deleted_count = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        if deleted_count > 0:
+            print(f"🧹 Cleaned {deleted_count} old cache entries (older than {CACHE_EXPIRATION_DAYS} days)")
+        
+        return deleted_count
+    except Exception as e:
+        print(f"Error cleaning old cache: {e}")
+        return 0
+
 # ==================== XỬ LÝ BÀI VIẾT ====================
 def process_article_content(article):
     """
@@ -233,13 +297,81 @@ def process_article_content(article):
 
 # ==================== ROUTES ====================
 
-# Home page - list all articles
+# Home page - list all articles with search & filter
 @app.route('/')
 def index():
     conn = get_db()
-    articles = conn.execute('SELECT * FROM articles ORDER BY created_at DESC').fetchall()
+    
+    # Get search parameters
+    search_query = request.args.get('q', '').strip()
+    use_regex = request.args.get('regex', 'false') == 'true'
+    categories = request.args.getlist('categories')  # Multiple categories
+    favorites_only = request.args.get('favorites', 'false') == 'true'
+    
+    # Base query
+    query = 'SELECT DISTINCT a.* FROM articles a'
+    params = []
+    conditions = []
+    
+    # Join with categories if filtering by category
+    if categories:
+        query += ' LEFT JOIN article_categories ac ON a.id = ac.article_id'
+        query += ' LEFT JOIN categories c ON ac.category_id = c.id'
+        placeholders = ','.join('?' * len(categories))
+        conditions.append(f'c.name IN ({placeholders})')
+        params.extend(categories)
+    
+    # Search filter
+    if search_query:
+        if use_regex:
+            # Regex search - More flexible but slower
+            # Note: SQLite REGEXP requires loading extension, so we'll fetch all and filter in Python
+            pass  # Will filter after fetching
+        else:
+            # Normal LIKE search
+            search_condition = '(a.title_vi LIKE ? OR a.title_en LIKE ? OR a.content_vi LIKE ? OR a.content_en LIKE ?)'
+            conditions.append(search_condition)
+            search_pattern = f'%{search_query}%'
+            params.extend([search_pattern] * 4)
+    
+    # Favorites filter
+    if favorites_only:
+        conditions.append('a.is_favorite = 1')
+    
+    # Combine conditions
+    if conditions:
+        query += ' WHERE ' + ' AND '.join(conditions)
+    
+    query += ' ORDER BY a.created_at DESC'
+    
+    articles = conn.execute(query, params).fetchall()
+    
+    # Apply regex filter if needed (post-query)
+    if search_query and use_regex:
+        try:
+            pattern = re.compile(search_query, re.IGNORECASE)
+            articles = [
+                a for a in articles 
+                if pattern.search(a['title_vi'] or '') or 
+                   pattern.search(a['title_en'] or '') or 
+                   pattern.search(a['content_vi'] or '') or 
+                   pattern.search(a['content_en'] or '')
+            ]
+        except re.error:
+            flash('Invalid regex pattern', 'error')
+    
+    # Get all categories for filter UI
+    all_categories = conn.execute('SELECT DISTINCT name FROM categories ORDER BY name').fetchall()
+    
     conn.close()
-    return render_template('index.html', articles=articles)
+    
+    return render_template('index.html', 
+                         articles=articles, 
+                         all_categories=all_categories,
+                         search_query=search_query,
+                         use_regex=use_regex,
+                         selected_categories=categories,
+                         favorites_only=favorites_only)
 
 # Article detail page - Tự động tạo IPA khi hiển thị
 @app.route('/article/<int:article_id>')
@@ -323,7 +455,12 @@ def import_articles():
             conn.commit()
             conn.close()
             
+            # Clean old cache after importing new articles
+            deleted_cache = clean_old_cache()
+            
             flash(f'✅ Đã import thành công {imported_count} bài viết! IPA sẽ được tạo tự động khi xem bài.', 'success')
+            if deleted_cache > 0:
+                flash(f'🧹 Đã xóa {deleted_cache} cache cũ (>30 ngày)', 'info')
             return redirect(url_for('index'))
         except json.JSONDecodeError as e:
             flash(f'❌ Lỗi cú pháp JSON: {str(e)}', 'error')
@@ -386,6 +523,117 @@ def clear_ipa_cache(article_id):
             'success': False,
             'error': str(e)
         }), 500
+
+# API endpoint to toggle favorite
+@app.route('/api/article/<int:article_id>/favorite', methods=['POST'])
+def toggle_favorite(article_id):
+    """Toggle favorite status of an article"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Get current favorite status
+        article = cursor.execute('SELECT is_favorite FROM articles WHERE id = ?', (article_id,)).fetchone()
+        if not article:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Article not found'}), 404
+        
+        # Toggle favorite
+        new_status = 0 if article['is_favorite'] else 1
+        cursor.execute('UPDATE articles SET is_favorite = ? WHERE id = ?', (new_status, article_id))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'is_favorite': new_status,
+            'message': 'Đã thêm vào yêu thích' if new_status else 'Đã bỏ yêu thích'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# API endpoint to get all categories
+@app.route('/api/categories', methods=['GET'])
+def get_categories():
+    """Get all categories"""
+    try:
+        conn = get_db()
+        categories = conn.execute('SELECT * FROM categories ORDER BY name').fetchall()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'categories': [dict(c) for c in categories]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# API endpoint to add/update article categories
+@app.route('/api/article/<int:article_id>/categories', methods=['POST'])
+def update_article_categories(article_id):
+    """Update categories for an article"""
+    try:
+        data = request.get_json()
+        category_names = data.get('categories', [])
+        
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Check if article exists
+        article = cursor.execute('SELECT id FROM articles WHERE id = ?', (article_id,)).fetchone()
+        if not article:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Article not found'}), 404
+        
+        # Clear existing categories for this article
+        cursor.execute('DELETE FROM article_categories WHERE article_id = ?', (article_id,))
+        
+        # Add new categories
+        for cat_name in category_names:
+            cat_name = cat_name.strip()
+            if not cat_name:
+                continue
+            
+            # Insert category if not exists
+            cursor.execute('INSERT OR IGNORE INTO categories (name) VALUES (?)', (cat_name,))
+            
+            # Get category ID
+            cat_id = cursor.execute('SELECT id FROM categories WHERE name = ?', (cat_name,)).fetchone()['id']
+            
+            # Link article to category
+            cursor.execute('INSERT INTO article_categories (article_id, category_id) VALUES (?, ?)', 
+                         (article_id, cat_id))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Đã cập nhật {len(category_names)} categories'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# API endpoint to get article categories
+@app.route('/api/article/<int:article_id>/categories', methods=['GET'])
+def get_article_categories(article_id):
+    """Get categories for an article"""
+    try:
+        conn = get_db()
+        categories = conn.execute('''
+            SELECT c.* FROM categories c
+            JOIN article_categories ac ON c.id = ac.category_id
+            WHERE ac.article_id = ?
+            ORDER BY c.name
+        ''', (article_id,)).fetchall()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'categories': [dict(c) for c in categories]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
     init_db()

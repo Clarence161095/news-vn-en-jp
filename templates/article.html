@@ -335,11 +335,41 @@
     }
     
     .settings-section {
-        margin-bottom: 20px;
+        margin-bottom: 15px;
     }
     
     .settings-section:last-child {
         margin-bottom: 0;
+    }
+    
+    .settings-group-btn {
+        width: 100%;
+        padding: 12px 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 14px;
+        text-align: left;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .settings-group-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .settings-group-content {
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 0 0 8px 8px;
+        margin-top: -8px;
     }
     
     .settings-label {
@@ -1306,83 +1336,217 @@
 <div id="settingsPanel" class="settings-panel">
     <h3>⚙️ Cài đặt</h3>
     
-    <!-- IPA Toggle -->
+    <!-- Display Settings Group -->
     <div class="settings-section">
-        <div class="toggle-label">
-            <span class="settings-label">IPA (Phiên âm)</span>
-            <label class="toggle-switch">
-                <input type="checkbox" id="ipaToggle" checked onchange="toggleAllIPA()">
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
-    </div>
-    
-    <!-- Dark Mode Toggle -->
-    <div class="settings-section">
-        <div class="toggle-label">
-            <span class="settings-label">🌙 Dark Mode</span>
-            <label class="toggle-switch">
-                <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
-    </div>
-    
-    <!-- Focus Mode Toggle -->
-    <div class="settings-section">
-        <div class="toggle-label">
-            <span class="settings-label">🎯 Focus Mode</span>
-            <label class="toggle-switch">
-                <input type="checkbox" id="focusModeToggle" onchange="toggleFocusMode()">
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
-    </div>
-    
-    <!-- Font Size Controls -->
-    <div class="settings-section">
-        <span class="settings-label">
-            📝 Kích thước chữ: <span class="font-size-value" id="fontSizeValue">100%</span>
-        </span>
-        <div class="settings-controls">
-            <button onclick="decreaseFontSize()">A-</button>
-            <button onclick="resetFontSize()">A</button>
-            <button onclick="increaseFontSize()">A+</button>
-        </div>
-    </div>
-    
-    <!-- Column Width Control (Bilingual Mode) -->
-    <div class="settings-section" id="columnWidthSection" style="display: none;">
-        <span class="settings-label">
-            📏 Độ rộng cột VN: <span class="font-size-value" id="columnWidthValue">50%</span>
-        </span>
-        <input type="range" id="columnWidthSlider" min="20" max="80" value="50" 
-               class="width-slider" oninput="adjustColumnWidth(this.value)">
-        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #999; margin-top: 5px;">
-            <span>20%</span>
-            <span>50%</span>
-            <span>80%</span>
-        </div>
-    </div>
-    
-    <!-- Delete Article Button -->
-    <div class="settings-section" style="border-top: 2px solid #e74c3c; padding-top: 15px; margin-top: 10px;">
-        <span class="settings-label" style="color: #e74c3c;">⚠️ Vùng nguy hiểm</span>
-        
-        <!-- Clear IPA Cache Button -->
-        <button onclick="clearIPACache()" 
-                style="width: 100%; padding: 12px; margin-bottom: 10px; background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.2s;">
-            🔄 Tạo lại IPA (Bài này)
+        <button onclick="toggleSection('displaySettings')" class="settings-group-btn">
+            📺 Hiển thị <span id="displaySettingsIcon">▼</span>
         </button>
-        
-        <form action="{{ url_for('delete_article', article_id=article['id']) }}" method="POST" 
-              onsubmit="return confirm('Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác!');" 
-              style="margin-top: 10px;">
-            <button type="submit" 
-                    style="width: 100%; padding: 12px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.2s;">
-                🗑️ Xóa bài viết
-            </button>
-        </form>
+        <div id="displaySettings" class="settings-group-content" style="display: block;">
+            <!-- IPA Toggle -->
+            <div style="margin-top: 10px;">
+                <div class="toggle-label">
+                    <span class="settings-label">IPA (Phiên âm)</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="ipaToggle" checked onchange="toggleAllIPA()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Dark Mode Toggle -->
+            <div style="margin-top: 10px;">
+                <div class="toggle-label">
+                    <span class="settings-label">🌙 Dark Mode</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Focus Mode Toggle -->
+            <div style="margin-top: 10px;">
+                <div class="toggle-label">
+                    <span class="settings-label">🎯 Focus Mode</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="focusModeToggle" onchange="toggleFocusMode()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- IPA Customization Group -->
+    <div class="settings-section">
+        <button onclick="toggleSection('ipaSettings')" class="settings-group-btn">
+            🎨 Tùy chỉnh IPA <span id="ipaSettingsIcon">▼</span>
+        </button>
+        <div id="ipaSettings" class="settings-group-content" style="display: none;">
+            <!-- IPA Font Size -->
+            <div style="margin-top: 10px;">
+                <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">
+                    📏 Cỡ chữ: <span id="ipaFontSizeValue">60%</span>
+                </label>
+                <input type="range" id="ipaFontSizeSlider" min="10" max="120" value="60" 
+                       class="width-slider" oninput="adjustIPAFontSize(this.value)">
+            </div>
+            
+            <!-- IPA Opacity -->
+            <div style="margin-top: 10px;">
+                <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">
+                    💧 Độ trong suốt: <span id="ipaOpacityValue">100%</span>
+                </label>
+                <input type="range" id="ipaOpacitySlider" min="1" max="100" value="100" 
+                       class="width-slider" oninput="adjustIPAOpacity(this.value)">
+            </div>
+            
+            <!-- IPA Color -->
+            <div style="margin-top: 10px;">
+                <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">
+                    🎨 Màu sắc
+                </label>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
+                    <button onclick="setIPAColor('#666')" style="width: 28px; height: 28px; background: #666; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;" title="Xám"></button>
+                    <button onclick="setIPAColor('#3498db')" style="width: 28px; height: 28px; background: #3498db; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;" title="Xanh dương"></button>
+                    <button onclick="setIPAColor('#e74c3c')" style="width: 28px; height: 28px; background: #e74c3c; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;" title="Đỏ"></button>
+                    <button onclick="setIPAColor('#27ae60')" style="width: 28px; height: 28px; background: #27ae60; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;" title="Xanh lá"></button>
+                    <button onclick="setIPAColor('#f39c12')" style="width: 28px; height: 28px; background: #f39c12; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;" title="Cam"></button>
+                    <button onclick="setIPAColor('#9b59b6')" style="width: 28px; height: 28px; background: #9b59b6; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;" title="Tím"></button>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <input type="color" id="ipaColorPicker" value="#666666" 
+                           style="width: 50px; height: 35px; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;"
+                           onchange="setIPAColor(this.value)">
+                    <input type="text" id="ipaColorInput" placeholder="#666666" 
+                           style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 5px; font-size: 12px;"
+                           oninput="setIPAColorFromInput(this.value)">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Text Customization Group -->
+    <div class="settings-section">
+        <button onclick="toggleSection('textSettings')" class="settings-group-btn">
+            📝 Tùy chỉnh văn bản <span id="textSettingsIcon">▼</span>
+        </button>
+        <div id="textSettings" class="settings-group-content" style="display: none;">
+            <!-- Vietnamese Text Color -->
+            <div style="margin-top: 10px;">
+                <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">
+                    🇻🇳 Màu tiếng Việt
+                </label>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
+                    <button onclick="setVietnameseColor('#2c3e50')" style="width: 28px; height: 28px; background: #2c3e50; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;" title="Mặc định"></button>
+                    <button onclick="setVietnameseColor('#34495e')" style="width: 28px; height: 28px; background: #34495e; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;"></button>
+                    <button onclick="setVietnameseColor('#1a252f')" style="width: 28px; height: 28px; background: #1a252f; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;"></button>
+                    <button onclick="setVietnameseColor('#2980b9')" style="width: 28px; height: 28px; background: #2980b9; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;"></button>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <input type="color" id="viColorPicker" value="#2c3e50" 
+                           style="width: 50px; height: 35px; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;"
+                           onchange="setVietnameseColor(this.value)">
+                    <input type="text" id="viColorInput" placeholder="#2c3e50" 
+                           style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 5px; font-size: 12px;"
+                           oninput="setVietnameseColorFromInput(this.value)">
+                </div>
+            </div>
+            
+            <!-- English Text Color -->
+            <div style="margin-top: 10px;">
+                <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">
+                    🇬🇧 Màu tiếng Anh
+                </label>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
+                    <button onclick="setEnglishColor('#2c3e50')" style="width: 28px; height: 28px; background: #2c3e50; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;" title="Mặc định"></button>
+                    <button onclick="setEnglishColor('#34495e')" style="width: 28px; height: 28px; background: #34495e; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;"></button>
+                    <button onclick="setEnglishColor('#1a252f')" style="width: 28px; height: 28px; background: #1a252f; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;"></button>
+                    <button onclick="setEnglishColor('#16a085')" style="width: 28px; height: 28px; background: #16a085; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;"></button>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <input type="color" id="enColorPicker" value="#2c3e50" 
+                           style="width: 50px; height: 35px; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;"
+                           onchange="setEnglishColor(this.value)">
+                    <input type="text" id="enColorInput" placeholder="#2c3e50" 
+                           style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 5px; font-size: 12px;"
+                           oninput="setEnglishColorFromInput(this.value)">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <!-- Font Size Group -->
+    <div class="settings-section">
+        <button onclick="toggleSection('fontSettings')" class="settings-group-btn">
+            📐 Kích thước <span id="fontSettingsIcon">▼</span>
+        </button>
+        <div id="fontSettings" class="settings-group-content" style="display: none;">
+            <!-- Font Size Controls -->
+            <div style="margin-top: 10px;">
+                <span class="settings-label">
+                    📝 Kích thước chữ: <span class="font-size-value" id="fontSizeValue">100%</span>
+                </span>
+                <div class="settings-controls">
+                    <button onclick="decreaseFontSize()">A-</button>
+                    <button onclick="resetFontSize()">A</button>
+                    <button onclick="increaseFontSize()">A+</button>
+                </div>
+            </div>
+            
+            <!-- Column Width Control (Bilingual Mode) -->
+            <div id="columnWidthSection" style="display: none; margin-top: 10px;">
+                <span class="settings-label">
+                    📏 Độ rộng cột VN: <span class="font-size-value" id="columnWidthValue">50%</span>
+                </span>
+                <input type="range" id="columnWidthSlider" min="20" max="80" value="50" 
+                       class="width-slider" oninput="adjustColumnWidth(this.value)">
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: #999; margin-top: 5px;">
+                    <span>20%</span>
+                    <span>50%</span>
+                    <span>80%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cache & Danger Zone Group -->
+    <div class="settings-section">
+        <button onclick="toggleSection('dangerSettings')" class="settings-group-btn" style="background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);">
+            ⚠️ Vùng nguy hiểm <span id="dangerSettingsIcon">▼</span>
+        </button>
+        <div id="dangerSettings" class="settings-group-content" style="display: none;">
+            <!-- Category Management -->
+            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+                <label style="display: block; font-size: 13px; font-weight: bold; color: #555; margin-bottom: 8px;">
+                    📁 Quản lý Categories
+                </label>
+                <input type="text" id="categoryInput" placeholder="Thêm category mới..."
+                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 12px; margin-bottom: 8px;"
+                       onkeypress="if(event.key==='Enter'){addCategoryToArticle(); event.preventDefault();}">
+                <div id="articleCategories" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+                    <!-- Categories will be loaded here -->
+                </div>
+                <button onclick="addCategoryToArticle()" style="width: 100%; padding: 8px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; margin-top: 8px;">
+                    ➕ Thêm Category
+                </button>
+            </div>
+            
+            <!-- Clear Cache Button -->
+            <div style="margin-top: 10px;">
+                <button onclick="clearIPACache()" class="danger-btn" style="width: 100%; padding: 10px; background: #f39c12; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                    🧹 Xóa cache IPA (render lại)
+                </button>
+            </div>
+            
+            <!-- Delete Article Button -->
+            <div style="margin-top: 10px; border-top: 1px solid #e74c3c; padding-top: 10px;">
+                <button onclick="deleteArticle()" class="danger-btn" style="width: 100%; padding: 10px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                    🗑️ Xóa bài viết
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1559,6 +1723,193 @@
         localStorage.setItem('ipaEnabled', ipaEnabled);
     }
     
+    // IPA Customization Functions
+    let ipaFontSize = 60;
+    let ipaOpacity = 100;
+    let ipaColor = '#666';
+    let vietnameseColor = '#2c3e50';
+    let englishColor = '#2c3e50';
+    
+    function adjustIPAFontSize(value) {
+        ipaFontSize = parseInt(value);
+        document.getElementById('ipaFontSizeValue').textContent = ipaFontSize + '%';
+        applyIPAStyles();
+        localStorage.setItem('ipaFontSize', ipaFontSize);
+    }
+    
+    function adjustIPAOpacity(value) {
+        ipaOpacity = parseInt(value);
+        document.getElementById('ipaOpacityValue').textContent = ipaOpacity + '%';
+        applyIPAStyles();
+        localStorage.setItem('ipaOpacity', ipaOpacity);
+    }
+    
+    function setIPAColor(color) {
+        ipaColor = color;
+        document.getElementById('ipaColorInput').value = color;
+        document.getElementById('ipaColorPicker').value = color;
+        applyIPAStyles();
+        localStorage.setItem('ipaColor', ipaColor);
+    }
+    
+    function setIPAColorFromInput(value) {
+        if (value.startsWith('#') && (value.length === 4 || value.length === 7)) {
+            ipaColor = value;
+            document.getElementById('ipaColorPicker').value = value;
+            applyIPAStyles();
+            localStorage.setItem('ipaColor', ipaColor);
+        }
+    }
+    
+    function setVietnameseColor(color) {
+        vietnameseColor = color;
+        document.getElementById('viColorInput').value = color;
+        document.getElementById('viColorPicker').value = color;
+        applyVietnameseColor();
+        localStorage.setItem('vietnameseColor', vietnameseColor);
+    }
+    
+    function setVietnameseColorFromInput(value) {
+        if (value.startsWith('#') && (value.length === 4 || value.length === 7)) {
+            vietnameseColor = value;
+            document.getElementById('viColorPicker').value = value;
+            applyVietnameseColor();
+            localStorage.setItem('vietnameseColor', vietnameseColor);
+        }
+    }
+    
+    function setEnglishColor(color) {
+        englishColor = color;
+        document.getElementById('enColorInput').value = color;
+        document.getElementById('enColorPicker').value = color;
+        applyEnglishColor();
+        localStorage.setItem('englishColor', englishColor);
+    }
+    
+    function setEnglishColorFromInput(value) {
+        if (value.startsWith('#') && (value.length === 4 || value.length === 7)) {
+            englishColor = value;
+            document.getElementById('enColorPicker').value = value;
+            applyEnglishColor();
+            localStorage.setItem('englishColor', englishColor);
+        }
+    }
+    
+    function applyIPAStyles() {
+        console.log('🎨 Applying IPA styles:', { ipaFontSize, ipaOpacity, ipaColor });
+        
+        // Remove old style if exists
+        const oldStyle = document.getElementById('ipa-custom-styles');
+        if (oldStyle) oldStyle.remove();
+        
+        // Create new style with very high specificity
+        const style = document.createElement('style');
+        style.id = 'ipa-custom-styles';
+        style.textContent = `
+            body ruby rt,
+            .bilingual-content ruby rt,
+            .article-content ruby rt,
+            #content-en ruby rt,
+            #content-both ruby rt {
+                font-size: ${ipaFontSize / 100}em !important;
+                opacity: ${ipaOpacity / 100} !important;
+                color: ${ipaColor} !important;
+            }
+            
+            /* Override hover state */
+            body ruby.show-rt rt {
+                color: white !important;
+            }
+        `;
+        
+        document.head.appendChild(style);
+        
+        // Also apply inline styles as backup
+        document.querySelectorAll('ruby rt').forEach(rt => {
+            rt.style.setProperty('font-size', `${ipaFontSize / 100}em`, 'important');
+            rt.style.setProperty('opacity', `${ipaOpacity / 100}`, 'important');
+            rt.style.setProperty('color', ipaColor, 'important');
+        });
+        
+        console.log('✅ IPA styles applied to', document.querySelectorAll('ruby rt').length, 'elements');
+    }
+    
+    function applyVietnameseColor() {
+        // Remove old style if exists
+        const oldStyle = document.getElementById('vietnamese-custom-styles');
+        if (oldStyle) oldStyle.remove();
+        
+        // Create new style with very high specificity
+        const style = document.createElement('style');
+        style.id = 'vietnamese-custom-styles';
+        style.textContent = `
+            body .bilingual-vi .bilingual-content,
+            body .bilingual-vi .bilingual-content *:not(ruby):not(rt) {
+                color: ${vietnameseColor} !important;
+            }
+        `;
+        
+        document.head.appendChild(style);
+    }
+    
+    function applyEnglishColor() {
+        // Remove old style if exists
+        const oldStyle = document.getElementById('english-custom-styles');
+        if (oldStyle) oldStyle.remove();
+        
+        // Create new style with very high specificity
+        const style = document.createElement('style');
+        style.id = 'english-custom-styles';
+        style.textContent = `
+            body .bilingual-en .bilingual-content,
+            body .bilingual-en .bilingual-content *:not(ruby):not(rt) {
+                color: ${englishColor} !important;
+            }
+            
+            /* Ruby base text (English words) */
+            body .bilingual-en .bilingual-content ruby rb {
+                color: ${englishColor} !important;
+            }
+        `;
+        
+        document.head.appendChild(style);
+    }
+    
+    // Section Toggle Function
+    function toggleSection(sectionId) {
+        const content = document.getElementById(sectionId);
+        const icon = document.getElementById(sectionId + 'Icon');
+        
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            icon.textContent = '▼';
+            localStorage.setItem('section_' + sectionId, 'open');
+        } else {
+            content.style.display = 'none';
+            icon.textContent = '▶';
+            localStorage.setItem('section_' + sectionId, 'closed');
+        }
+    }
+    
+    // Restore section states on load
+    function restoreSectionStates() {
+        const sections = ['displaySettings', 'ipaSettings', 'textSettings', 'fontSettings', 'dangerSettings'];
+        
+        sections.forEach(sectionId => {
+            const state = localStorage.getItem('section_' + sectionId);
+            const content = document.getElementById(sectionId);
+            const icon = document.getElementById(sectionId + 'Icon');
+            
+            if (state === 'closed') {
+                content.style.display = 'none';
+                icon.textContent = '▶';
+            } else if (state === 'open') {
+                content.style.display = 'block';
+                icon.textContent = '▼';
+            }
+        });
+    }
+    
     // Dark Mode Toggle
     function toggleDarkMode() {
         const checkbox = document.getElementById('darkModeToggle');
@@ -1670,6 +2021,49 @@
             }
         }
         
+        // Load IPA customization
+        const savedIPAFontSize = localStorage.getItem('ipaFontSize');
+        if (savedIPAFontSize) {
+            ipaFontSize = parseInt(savedIPAFontSize);
+            document.getElementById('ipaFontSizeSlider').value = ipaFontSize;
+            document.getElementById('ipaFontSizeValue').textContent = ipaFontSize + '%';
+        }
+        
+        const savedIPAOpacity = localStorage.getItem('ipaOpacity');
+        if (savedIPAOpacity) {
+            ipaOpacity = parseInt(savedIPAOpacity);
+            document.getElementById('ipaOpacitySlider').value = ipaOpacity;
+            document.getElementById('ipaOpacityValue').textContent = ipaOpacity + '%';
+        }
+        
+        const savedIPAColor = localStorage.getItem('ipaColor');
+        if (savedIPAColor) {
+            ipaColor = savedIPAColor;
+            document.getElementById('ipaColorInput').value = ipaColor;
+            document.getElementById('ipaColorPicker').value = ipaColor;
+        }
+        
+        // Load Vietnamese color
+        const savedViColor = localStorage.getItem('vietnameseColor');
+        if (savedViColor) {
+            vietnameseColor = savedViColor;
+            document.getElementById('viColorInput').value = vietnameseColor;
+            document.getElementById('viColorPicker').value = vietnameseColor;
+        }
+        
+        // Load English color
+        const savedEnColor = localStorage.getItem('englishColor');
+        if (savedEnColor) {
+            englishColor = savedEnColor;
+            document.getElementById('enColorInput').value = englishColor;
+            document.getElementById('enColorPicker').value = englishColor;
+        }
+        
+        // Apply all styles after loading
+        applyIPAStyles();
+        applyVietnameseColor();
+        applyEnglishColor();
+        
         // Load dark mode
         const savedDarkMode = localStorage.getItem('darkMode');
         if (savedDarkMode === 'enabled') {
@@ -1693,6 +2087,9 @@
             columnWidthPercent = parseInt(savedWidth);
             document.getElementById('columnWidthSlider').value = columnWidthPercent;
         }
+        
+        // Restore section states
+        restoreSectionStates();
     }
     
     // Handle ruby clicks and touches
@@ -1868,6 +2265,13 @@
         // Load saved settings
         loadSettings();
         
+        // Force apply color styles after DOM is fully loaded
+        setTimeout(() => {
+            applyIPAStyles();
+            applyVietnameseColor();
+            applyEnglishColor();
+        }, 200);
+        
         const currentLang = new URLSearchParams(window.location.search).get('lang') || 'both';
         
         // Show column width section if in bilingual mode
@@ -1980,6 +2384,101 @@
             console.error('Clear IPA Cache Error:', error);
         }
     }
+    
+    // Delete Article Function
+    function deleteArticle() {
+        if (confirm('Bạn có chắc chắn muốn xóa bài viết này?\n\n⚠️ Hành động này không thể hoàn tác!')) {
+            // Create and submit form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/delete_article/{{ article["id"] }}';
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+    
+    // Category Management Functions
+    let articleCategories = [];
+    
+    async function loadArticleCategories() {
+        try {
+            const response = await fetch('/api/article/{{ article["id"] }}/categories');
+            const data = await response.json();
+            
+            if (data.success) {
+                articleCategories = data.categories.map(c => c.name);
+                displayCategories();
+            }
+        } catch (error) {
+            console.error('Failed to load categories:', error);
+        }
+    }
+    
+    function displayCategories() {
+        const container = document.getElementById('articleCategories');
+        if (!container) return;
+        
+        container.innerHTML = articleCategories.map(cat => `
+            <div style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; font-size: 11px; font-weight: 500;">
+                <span>📁 ${cat}</span>
+                <span onclick="removeCategoryFromArticle('${cat}')" style="cursor: pointer; font-weight: bold; font-size: 14px;">×</span>
+            </div>
+        `).join('');
+    }
+    
+    async function addCategoryToArticle() {
+        const input = document.getElementById('categoryInput');
+        const categoryName = input.value.trim();
+        
+        if (!categoryName) {
+            alert('Vui lòng nhập tên category');
+            return;
+        }
+        
+        if (articleCategories.includes(categoryName)) {
+            alert('Category này đã tồn tại');
+            return;
+        }
+        
+        articleCategories.push(categoryName);
+        await saveCategories();
+        input.value = '';
+        displayCategories();
+    }
+    
+    async function removeCategoryFromArticle(categoryName) {
+        articleCategories = articleCategories.filter(c => c !== categoryName);
+        await saveCategories();
+        displayCategories();
+    }
+    
+    async function saveCategories() {
+        try {
+            const response = await fetch('/api/article/{{ article["id"] }}/categories', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    categories: articleCategories
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                alert('Lỗi: ' + (data.error || 'Không thể lưu categories'));
+            }
+        } catch (error) {
+            console.error('Failed to save categories:', error);
+            alert('Lỗi khi lưu categories');
+        }
+    }
+    
+    // Load categories on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadArticleCategories();
+    });
 
 </script>
 {% endblock %}
