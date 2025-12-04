@@ -791,16 +791,16 @@
         background: #ffffff !important;
     }
     
-    body.focus-mode .bilingual-vi,
-    body.focus-mode .bilingual-en {
+    body.focus-mode .bilingual-left,
+    body.focus-mode .bilingual-right {
         overflow-y: auto !important;
         overflow-x: hidden;
         background: #ffffff !important;
     }
     
     body.focus-mode.dark-mode .bilingual-column,
-    body.focus-mode.dark-mode .bilingual-vi,
-    body.focus-mode.dark-mode .bilingual-en {
+    body.focus-mode.dark-mode .bilingual-left,
+    body.focus-mode.dark-mode .bilingual-right {
         background: #2c2c2c !important;
     }
     
@@ -895,6 +895,50 @@
         white-space: normal;
         max-width: 100%;
         overflow-x: hidden;
+    }
+    
+    .bilingual-left {
+        background: #ffffff;
+        border-right: 1px solid #e0e0e0;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+    }
+    
+    .bilingual-right {
+        background: #ffffff;
+        border-left: 1px solid #e0e0e0;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    
+    /* Language Dropdown Styles */
+    .lang-dropdown {
+        border: 1px solid #ddd;
+    }
+    
+    .lang-option {
+        padding: 12px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.2s;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .lang-option:last-child {
+        border-bottom: none;
+    }
+    
+    .lang-option:hover {
+        background-color: #f0f7fb;
+    }
+    
+    .lang-option.selected {
+        background-color: #e8f4f8;
+        font-weight: bold;
     }
     
     .bilingual-en .bilingual-content {
@@ -1249,8 +1293,11 @@
         <button class="lang-btn {% if lang == 'en' %}active{% endif %}" onclick="switchLang('en')">
             🇬🇧 English (IPA)
         </button>
+        <button class="lang-btn {% if lang == 'jp' %}active{% endif %}" onclick="switchLang('jp')" {% if not article.get('content_jp') %}style="opacity: 0.5;" title="Chưa có nội dung tiếng Nhật"{% endif %}>
+            🇯🇵 日本語
+        </button>
         <button class="lang-btn {% if lang == 'both' %}active{% endif %}" onclick="switchLang('both')">
-            🇻🇳🇬🇧 Song Ngữ
+            � Song Ngữ
         </button>
     </div>
     
@@ -1282,34 +1329,61 @@
         </div>
     </div>
     
-    <!-- Bilingual Content (Vietnamese - English) -->
-    <div id="content-both" class="content-section {% if lang == 'both' %}active{% endif %}">
-        <div class="bilingual-header" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-            <div style="text-align: center; padding: 10px; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; border-radius: 8px; font-weight: bold;">
-                🇻🇳 Tiếng Việt
-            </div>
-            <div style="text-align: center; padding: 10px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border-radius: 8px; font-weight: bold;">
-                🇬🇧 English (IPA)
+    <!-- Japanese Content -->
+    <div id="content-jp" class="content-section {% if lang == 'jp' %}active{% endif %}">
+        <div class="article-content">
+            <h3 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.8em;">{{ article.get('title_jp', '') or article.get('title_en', '') }}</h3>
+            <div>
+                {% if article.get('content_jp') %}
+                    {{ article['content_jp']|safe }}
+                {% else %}
+                    <p style="color: #999; font-style: italic;">📝 Chưa có nội dung tiếng Nhật cho bài viết này.</p>
+                {% endif %}
             </div>
         </div>
+    </div>
+    
+    <!-- Bilingual Content -->
+    <div id="content-both" class="content-section {% if lang == 'both' %}active{% endif %}">
+        <div class="bilingual-header" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div id="leftLangHeader" style="text-align: center; padding: 10px; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; border-radius: 8px; font-weight: bold; cursor: pointer;" onclick="showLangSelector('left')">
+                🇻🇳 Tiếng Việt ▼
+            </div>
+            <div id="rightLangHeader" style="text-align: center; padding: 10px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border-radius: 8px; font-weight: bold; cursor: pointer;" onclick="showLangSelector('right')">
+                🇬🇧 English (IPA) ▼
+            </div>
+        </div>
+        
+        <!-- Language Selector Dropdowns -->
+        <div id="leftLangDropdown" class="lang-dropdown" style="display: none; position: absolute; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 100; min-width: 150px;">
+            <div class="lang-option" onclick="setColumnLang('left', 'vi')">🇻🇳 Tiếng Việt</div>
+            <div class="lang-option" onclick="setColumnLang('left', 'en')">🇬🇧 English (IPA)</div>
+            <div class="lang-option" onclick="setColumnLang('left', 'jp')">🇯🇵 日本語</div>
+        </div>
+        <div id="rightLangDropdown" class="lang-dropdown" style="display: none; position: absolute; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 100; min-width: 150px;">
+            <div class="lang-option" onclick="setColumnLang('right', 'vi')">🇻🇳 Tiếng Việt</div>
+            <div class="lang-option" onclick="setColumnLang('right', 'en')">🇬🇧 English (IPA)</div>
+            <div class="lang-option" onclick="setColumnLang('right', 'jp')">🇯🇵 日本語</div>
+        </div>
+        
         <div class="bilingual-sync-container">
-            <div class="bilingual-column bilingual-vi">
+            <div class="bilingual-column bilingual-left" id="leftColumn">
                 <div class="article-content bilingual-content">
-                    <h4 style="margin-bottom: 15px; font-size: 1.5em; color: #2c3e50;">{{ article['title_vi'] }}</h4>
-                    <div id="vi-content">{{ article['content_vi']|safe }}</div>
+                    <h4 style="margin-bottom: 15px; font-size: 1.5em; color: #2c3e50;" id="leftTitle">{{ article['title_vi'] }}</h4>
+                    <div id="leftContent">{{ article['content_vi']|safe }}</div>
                 </div>
             </div>
             <div class="bilingual-divider" id="bilingualDivider"></div>
-            <div class="bilingual-column bilingual-en">
+            <div class="bilingual-column bilingual-right" id="rightColumn">
                 <div class="article-content bilingual-content">
-                    <h4 style="margin-bottom: 15px; font-size: 1.5em; color: #2c3e50;">
+                    <h4 style="margin-bottom: 15px; font-size: 1.5em; color: #2c3e50;" id="rightTitle">
                         {% if article.get('title_en_ipa') %}
                             {{ article['title_en_ipa']|safe }}
                         {% else %}
                             {{ article['title_en'] }}
                         {% endif %}
                     </h4>
-                    <div id="en-content">
+                    <div id="rightContent">
                         {% if article.get('content_en_ipa') %}
                             {{ article['content_en_ipa']|safe }}
                         {% else %}
@@ -1320,6 +1394,16 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Hidden content storage for bilingual switching -->
+<div id="contentStorage" style="display: none;">
+    <div id="storage-title-vi">{{ article['title_vi'] }}</div>
+    <div id="storage-content-vi">{{ article['content_vi']|safe }}</div>
+    <div id="storage-title-en">{% if article.get('title_en_ipa') %}{{ article['title_en_ipa']|safe }}{% else %}{{ article['title_en'] }}{% endif %}</div>
+    <div id="storage-content-en">{% if article.get('content_en_ipa') %}{{ article['content_en_ipa']|safe }}{% else %}{{ article.get('content_en', '')|safe }}{% endif %}</div>
+    <div id="storage-title-jp">{{ article.get('title_jp', '') or article.get('title_en', '') }}</div>
+    <div id="storage-content-jp">{% if article.get('content_jp') %}{{ article['content_jp']|safe }}{% else %}<p style="color: #999; font-style: italic;">📝 Chưa có nội dung tiếng Nhật.</p>{% endif %}</div>
 </div>
 
 <!-- Settings Button (Gear Icon) - BOTTOM RIGHT -->
@@ -1498,7 +1582,7 @@
             <!-- Column Width Control (Bilingual Mode) -->
             <div id="columnWidthSection" style="display: none; margin-top: 10px;">
                 <span class="settings-label">
-                    📏 Độ rộng cột VN: <span class="font-size-value" id="columnWidthValue">50%</span>
+                    📏 Độ rộng cột trái: <span class="font-size-value" id="columnWidthValue">50%</span>
                 </span>
                 <input type="range" id="columnWidthSlider" min="20" max="80" value="50" 
                        class="width-slider" oninput="adjustColumnWidth(this.value)">
@@ -1583,6 +1667,94 @@
     let columnWidthPercent = 50; // Default 50-50 split
     let lastScrollTop = { vi: 0, en: 0 }; // Track last scroll positions
     
+    // Bilingual column language settings
+    let leftColumnLang = 'vi';
+    let rightColumnLang = 'en';
+    
+    // Language display names and colors
+    const langConfig = {
+        'vi': { name: '🇻🇳 Tiếng Việt', color: 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)' },
+        'en': { name: '🇬🇧 English (IPA)', color: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)' },
+        'jp': { name: '🇯🇵 日本語', color: 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)' }
+    };
+    
+    // Show language selector dropdown
+    function showLangSelector(column) {
+        const dropdown = document.getElementById(column + 'LangDropdown');
+        const header = document.getElementById(column + 'LangHeader');
+        
+        // Hide other dropdown
+        const otherColumn = column === 'left' ? 'right' : 'left';
+        document.getElementById(otherColumn + 'LangDropdown').style.display = 'none';
+        
+        if (dropdown.style.display === 'none') {
+            const rect = header.getBoundingClientRect();
+            dropdown.style.display = 'block';
+            dropdown.style.left = rect.left + 'px';
+            dropdown.style.top = (rect.bottom + 5) + 'px';
+            dropdown.style.width = rect.width + 'px';
+        } else {
+            dropdown.style.display = 'none';
+        }
+    }
+    
+    // Set column language
+    function setColumnLang(column, lang) {
+        if (column === 'left') {
+            leftColumnLang = lang;
+            localStorage.setItem('bilingualLeftLang', lang);
+        } else {
+            rightColumnLang = lang;
+            localStorage.setItem('bilingualRightLang', lang);
+        }
+        
+        updateBilingualContent();
+        
+        // Hide dropdown
+        document.getElementById(column + 'LangDropdown').style.display = 'none';
+    }
+    
+    // Update bilingual content based on selected languages
+    function updateBilingualContent() {
+        // Update headers
+        const leftHeader = document.getElementById('leftLangHeader');
+        const rightHeader = document.getElementById('rightLangHeader');
+        
+        leftHeader.innerHTML = langConfig[leftColumnLang].name + ' ▼';
+        leftHeader.style.background = langConfig[leftColumnLang].color;
+        
+        rightHeader.innerHTML = langConfig[rightColumnLang].name + ' ▼';
+        rightHeader.style.background = langConfig[rightColumnLang].color;
+        
+        // Update content
+        const leftTitle = document.getElementById('leftTitle');
+        const leftContent = document.getElementById('leftContent');
+        const rightTitle = document.getElementById('rightTitle');
+        const rightContent = document.getElementById('rightContent');
+        
+        // Get content from storage
+        leftTitle.innerHTML = document.getElementById('storage-title-' + leftColumnLang).innerHTML;
+        leftContent.innerHTML = document.getElementById('storage-content-' + leftColumnLang).innerHTML;
+        
+        rightTitle.innerHTML = document.getElementById('storage-title-' + rightColumnLang).innerHTML;
+        rightContent.innerHTML = document.getElementById('storage-content-' + rightColumnLang).innerHTML;
+        
+        // Re-apply IPA styles if needed
+        setTimeout(() => {
+            applyIPAStyles();
+        }, 100);
+    }
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#leftLangHeader') && !e.target.closest('#leftLangDropdown')) {
+            document.getElementById('leftLangDropdown').style.display = 'none';
+        }
+        if (!e.target.closest('#rightLangHeader') && !e.target.closest('#rightLangDropdown')) {
+            document.getElementById('rightLangDropdown').style.display = 'none';
+        }
+    });
+    
     // Check if current user owns this article and show delete button
     async function checkArticleOwnership() {
         const username = getUsername(); // From base.html
@@ -1620,6 +1792,9 @@
         url.searchParams.set('lang', lang);
         window.history.pushState({}, '', url);
         
+        // Save to localStorage
+        localStorage.setItem('preferredLang', lang);
+        
         document.querySelectorAll('.content-section').forEach(section => {
             section.classList.remove('active');
         });
@@ -1638,15 +1813,24 @@
             setupSyncScrolling();
             setupDividerDrag();
             
+            // Load saved bilingual language settings
+            const savedLeftLang = localStorage.getItem('bilingualLeftLang');
+            const savedRightLang = localStorage.getItem('bilingualRightLang');
+            if (savedLeftLang) leftColumnLang = savedLeftLang;
+            if (savedRightLang) rightColumnLang = savedRightLang;
+            
+            // Update bilingual content
+            updateBilingualContent();
+            
             // Apply column width immediately
             setTimeout(() => {
                 alignBilingualContent();
                 applyColumnWidth();
                 
-                // Force apply 95% to English content
-                const enContent = document.querySelector('.bilingual-en .bilingual-content');
-                if (enContent) {
-                    enContent.style.setProperty('max-width', '95%', 'important');
+                // Force apply 95% to right content
+                const rightContent = document.querySelector('.bilingual-right .bilingual-content');
+                if (rightContent) {
+                    rightContent.style.setProperty('max-width', '95%', 'important');
                 }
             }, 50);
         } else {
@@ -1666,8 +1850,8 @@
     function applyColumnWidth() {
         const container = document.querySelector('.bilingual-sync-container');
         const display = document.getElementById('columnWidthValue');
-        const viColumn = document.querySelector('.bilingual-vi');
-        const enColumn = document.querySelector('.bilingual-en');
+        const leftColumn = document.querySelector('.bilingual-left');
+        const rightColumn = document.querySelector('.bilingual-right');
         
         if (container && display) {
             const leftPercent = columnWidthPercent;
@@ -1700,24 +1884,24 @@
             display.textContent = finalLeft + '%';
             
             // Force recalculation of child components
-            if (viColumn) {
-                viColumn.style.width = '100%';
-                viColumn.style.maxWidth = '100%';
-                const viContent = viColumn.querySelector('.bilingual-content');
-                if (viContent) {
-                    viContent.style.width = 'auto';
-                    viContent.style.maxWidth = '100%';
-                    viContent.style.setProperty('max-width', '100%', 'important');
+            if (leftColumn) {
+                leftColumn.style.width = '100%';
+                leftColumn.style.maxWidth = '100%';
+                const leftContent = leftColumn.querySelector('.bilingual-content');
+                if (leftContent) {
+                    leftContent.style.width = 'auto';
+                    leftContent.style.maxWidth = '100%';
+                    leftContent.style.setProperty('max-width', '100%', 'important');
                 }
             }
             
-            if (enColumn) {
-                enColumn.style.width = '100%';
-                enColumn.style.maxWidth = '100%';
-                const enContent = enColumn.querySelector('.bilingual-content');
-                if (enContent) {
-                    enContent.style.width = 'auto';
-                    enContent.style.setProperty('max-width', '100%', 'important'); // Force 95% for English
+            if (rightColumn) {
+                rightColumn.style.width = '100%';
+                rightColumn.style.maxWidth = '100%';
+                const rightContent = rightColumn.querySelector('.bilingual-content');
+                if (rightContent) {
+                    rightContent.style.width = 'auto';
+                    rightContent.style.setProperty('max-width', '100%', 'important');
                 }
             }
             
@@ -1728,8 +1912,8 @@
             }
             
             // Trigger reflow to ensure layout recalculation
-            if (viColumn) void viColumn.offsetHeight;
-            if (enColumn) void enColumn.offsetHeight;
+            if (leftColumn) void leftColumn.offsetHeight;
+            if (rightColumn) void rightColumn.offsetHeight;
         }
     }
     
@@ -1996,10 +2180,10 @@
             // DO NOT save to localStorage - focus mode should not persist
             
             // Scroll to top of bilingual content
-            const viColumn = document.querySelector('.bilingual-vi');
-            const enColumn = document.querySelector('.bilingual-en');
-            if (viColumn) viColumn.scrollTop = 0;
-            if (enColumn) enColumn.scrollTop = 0;
+            const leftColumn = document.querySelector('.bilingual-left');
+            const rightColumn = document.querySelector('.bilingual-right');
+            if (leftColumn) leftColumn.scrollTop = 0;
+            if (rightColumn) rightColumn.scrollTop = 0;
             
             // Close settings panel after enabling focus mode
             setTimeout(() => {
@@ -2144,6 +2328,12 @@
             document.getElementById('columnWidthSlider').value = columnWidthPercent;
         }
         
+        // Load bilingual column language settings
+        const savedLeftLang = localStorage.getItem('bilingualLeftLang');
+        const savedRightLang = localStorage.getItem('bilingualRightLang');
+        if (savedLeftLang) leftColumnLang = savedLeftLang;
+        if (savedRightLang) rightColumnLang = savedRightLang;
+        
         // Restore section states
         restoreSectionStates();
     }
@@ -2189,24 +2379,23 @@
         }
     });
     
-    // Synchronized scrolling - English scrolls naturally, Vietnamese follows
+    // Synchronized scrolling - Right column scrolls naturally, Left follows
     function setupSyncScrolling() {
-        const viColumn = document.querySelector('.bilingual-vi');
-        const enColumn = document.querySelector('.bilingual-en');
+        const leftColumn = document.querySelector('.bilingual-left');
+        const rightColumn = document.querySelector('.bilingual-right');
 
-        if (!viColumn || !enColumn) return;
+        if (!leftColumn || !rightColumn) return;
 
-        // ONLY English has scroll listener - Vietnamese just follows
-        // This prevents conflict and makes scrolling smooth
-        enColumn.addEventListener('scroll', function() {
+        // Right column has scroll listener - Left just follows
+        rightColumn.addEventListener('scroll', function() {
             if (isScrollSyncing) return;
             isScrollSyncing = true;
 
-            // Calculate scroll percentage from English
-            const scrollPercentage = enColumn.scrollTop / (enColumn.scrollHeight - enColumn.clientHeight);
+            // Calculate scroll percentage from right column
+            const scrollPercentage = rightColumn.scrollTop / (rightColumn.scrollHeight - rightColumn.clientHeight);
             
-            // Apply to Vietnamese column
-            viColumn.scrollTop = scrollPercentage * (viColumn.scrollHeight - viColumn.clientHeight);
+            // Apply to left column
+            leftColumn.scrollTop = scrollPercentage * (leftColumn.scrollHeight - leftColumn.clientHeight);
             
             // Release immediately for smooth scrolling
             requestAnimationFrame(() => {
@@ -2283,34 +2472,34 @@
     
     // Align bilingual content by matching paragraph heights
     function alignBilingualContent() {
-        const viContent = document.querySelector('#vi-content');
-        const enContent = document.querySelector('#en-content');
+        const leftContent = document.querySelector('#leftContent');
+        const rightContent = document.querySelector('#rightContent');
         
-        if (!viContent || !enContent) return;
+        if (!leftContent || !rightContent) return;
         
-        const viParas = viContent.querySelectorAll('p, h1, h2, h3, h4');
-        const enParas = enContent.querySelectorAll('p, h1, h2, h3, h4');
+        const leftParas = leftContent.querySelectorAll('p, h1, h2, h3, h4');
+        const rightParas = rightContent.querySelectorAll('p, h1, h2, h3, h4');
         
-        const maxLength = Math.max(viParas.length, enParas.length);
+        const maxLength = Math.max(leftParas.length, rightParas.length);
         
         for (let i = 0; i < maxLength; i++) {
-            if (viParas[i] && enParas[i]) {
+            if (leftParas[i] && rightParas[i]) {
                 // Get tag names to check if they match
-                const viTag = viParas[i].tagName;
-                const enTag = enParas[i].tagName;
+                const leftTag = leftParas[i].tagName;
+                const rightTag = rightParas[i].tagName;
                 
                 // If tags match (both are H1, H2, etc.), they're aligned
-                if (viTag === enTag) {
-                    viParas[i].style.minHeight = 'auto';
-                    enParas[i].style.minHeight = 'auto';
+                if (leftTag === rightTag) {
+                    leftParas[i].style.minHeight = 'auto';
+                    rightParas[i].style.minHeight = 'auto';
                 } else {
                     // Try to sync by content similarity
-                    const viHeight = viParas[i].offsetHeight;
-                    const enHeight = enParas[i].offsetHeight;
-                    const maxHeight = Math.max(viHeight, enHeight);
+                    const leftHeight = leftParas[i].offsetHeight;
+                    const rightHeight = rightParas[i].offsetHeight;
+                    const maxHeight = Math.max(leftHeight, rightHeight);
                     
-                    viParas[i].style.minHeight = maxHeight + 'px';
-                    enParas[i].style.minHeight = maxHeight + 'px';
+                    leftParas[i].style.minHeight = maxHeight + 'px';
+                    rightParas[i].style.minHeight = maxHeight + 'px';
                 }
             }
         }
@@ -2336,6 +2525,10 @@
             widthSection.style.display = 'block';
             setupSyncScrolling();
             setupDividerDrag();
+            
+            // Update bilingual content with saved language settings
+            updateBilingualContent();
+            
             setTimeout(() => {
                 alignBilingualContent();
                 applyColumnWidth();

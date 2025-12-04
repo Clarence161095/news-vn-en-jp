@@ -41,14 +41,16 @@ def init_db():
     conn = sqlite3.connect('articles.db')
     c = conn.cursor()
     
-    # Articles table - Chỉ Việt và Anh
+    # Articles table - Việt, Anh và Nhật
     c.execute('''
         CREATE TABLE IF NOT EXISTS articles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title_vi TEXT,
             title_en TEXT,
+            title_jp TEXT,
             content_vi TEXT,
             content_en TEXT,
+            content_jp TEXT,
             category TEXT,
             is_favorite INTEGER DEFAULT 0,
             created_by TEXT,
@@ -61,6 +63,20 @@ def init_db():
     try:
         c.execute('ALTER TABLE articles ADD COLUMN created_by TEXT')
         print("✅ Added created_by column to articles table")
+    except sqlite3.OperationalError:
+        pass  # Column already exists
+    
+    # Migration: Add title_jp column if not exists
+    try:
+        c.execute('ALTER TABLE articles ADD COLUMN title_jp TEXT')
+        print("✅ Added title_jp column to articles table")
+    except sqlite3.OperationalError:
+        pass  # Column already exists
+    
+    # Migration: Add content_jp column if not exists
+    try:
+        c.execute('ALTER TABLE articles ADD COLUMN content_jp TEXT')
+        print("✅ Added content_jp column to articles table")
     except sqlite3.OperationalError:
         pass  # Column already exists
     
@@ -523,9 +539,9 @@ def import_articles():
                     flash(f'Lỗi: Bài viết #{idx+1} thiếu content_vi hoặc content_en!', 'error')
                     return redirect(url_for('import_articles'))
                 
-                # Cảnh báo nếu có field tiếng Nhật (cũ)
+                # Thông báo nếu có field tiếng Nhật
                 if article.get('title_jp') or article.get('content_jp'):
-                    flash(f'Cảnh báo: Bài #{idx+1} có field tiếng Nhật (title_jp/content_jp) sẽ bị bỏ qua!', 'warning')
+                    flash(f'✅ Bài #{idx+1} có nội dung tiếng Nhật (title_jp/content_jp) sẽ được lưu!', 'info')
             
             conn = get_db()
             imported_count = 0
@@ -536,16 +552,18 @@ def import_articles():
             print(f"🔍 Import articles with username: '{username}'")
             
             for article in articles_to_import:
-                # CHỈ LƯU NỘI DUNG GỐC - KHÔNG LƯU IPA
+                # LƯU NỘI DUNG GỐC - BAO GỒM TIẾNG NHẬT
                 cursor = conn.execute('''
                     INSERT INTO articles 
-                    (title_vi, title_en, content_vi, content_en, category, created_by)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    (title_vi, title_en, title_jp, content_vi, content_en, content_jp, category, created_by)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     article.get('title_vi', ''),
                     article.get('title_en', ''),
+                    article.get('title_jp', ''),
                     article.get('content_vi', ''),
                     article.get('content_en', ''),
+                    article.get('content_jp', ''),
                     article.get('category', 'general'),
                     username if username else None
                 ))

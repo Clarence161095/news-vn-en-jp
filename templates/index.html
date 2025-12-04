@@ -282,6 +282,12 @@
                     <input type="checkbox" name="my_articles" id="myArticlesInput" value="true">
                     <span style="font-size: 13px;">👤 <strong>Bài viết của tôi</strong></span>
                 </label>
+                
+                <button type="button" 
+                        onclick="clearAllFilters()"
+                        style="padding: 6px 12px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 500;">
+                    🗑️ Xóa bộ lọc
+                </button>
             </div>
         </div>
         
@@ -699,24 +705,23 @@
             const label = checkbox.querySelector('span');
             label.innerHTML = `👤 <strong>Bài viết của ${username}</strong>`;
             
-            // Auto-check if currently filtering by username
+            // Check if currently filtering by username
             if (currentCategories.includes(username)) {
                 document.getElementById('myArticlesInput').checked = true;
             }
         }
         
-        // Auto-filter by current username if:
-        // 1. Username is set
-        // 2. No manual category filter applied
-        // 3. Not explicitly cleared (no 'noclear' param)
-        // 4. "My Articles" checkbox not explicitly unchecked
-        if (username && currentCategories.length === 0 && !urlParams.has('noclear')) {
-            console.log(`🎯 Auto-filtering by username: ${username}`);
-            
-            // Redirect with username category filter
-            urlParams.append('categories', username);
-            window.location.search = urlParams.toString();
-            return; // Stop execution, page will reload
+        // Restore filters from localStorage if no URL params
+        if (!urlParams.has('q') && !urlParams.has('categories') && !urlParams.has('favorites') && !urlParams.has('regex') && !urlParams.has('my_articles') && !urlParams.has('noclear')) {
+            const savedFilters = getSavedFilters();
+            if (savedFilters && hasActiveFilters(savedFilters)) {
+                console.log('🔄 Restoring saved filters from localStorage:', savedFilters);
+                applyFiltersFromStorage(savedFilters);
+                return; // Stop execution, page will reload
+            }
+        } else {
+            // Save current filters to localStorage
+            saveCurrentFilters();
         }
         
         // Load categories for all articles
@@ -732,6 +737,70 @@
             await showDeleteButtonsForUserArticles(username);
         }
     });
+    
+    // ===== FILTER PERSISTENCE FUNCTIONS =====
+    
+    // Save current filters to localStorage
+    function saveCurrentFilters() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const filters = {
+            q: urlParams.get('q') || '',
+            regex: urlParams.get('regex') === 'true',
+            favorites: urlParams.get('favorites') === 'true',
+            categories: urlParams.getAll('categories'),
+            my_articles: urlParams.get('my_articles') === 'true'
+        };
+        localStorage.setItem('newsFilters', JSON.stringify(filters));
+        console.log('💾 Saved filters to localStorage:', filters);
+    }
+    
+    // Get saved filters from localStorage
+    function getSavedFilters() {
+        try {
+            const saved = localStorage.getItem('newsFilters');
+            return saved ? JSON.parse(saved) : null;
+        } catch (e) {
+            console.error('Error reading filters from localStorage:', e);
+            return null;
+        }
+    }
+    
+    // Check if filters have any active values
+    function hasActiveFilters(filters) {
+        if (!filters) return false;
+        return filters.q || filters.regex || filters.favorites || filters.my_articles || (filters.categories && filters.categories.length > 0);
+    }
+    
+    // Apply filters from localStorage to URL and reload
+    function applyFiltersFromStorage(filters) {
+        const urlParams = new URLSearchParams();
+        
+        if (filters.q) {
+            urlParams.set('q', filters.q);
+        }
+        if (filters.regex) {
+            urlParams.set('regex', 'true');
+        }
+        if (filters.favorites) {
+            urlParams.set('favorites', 'true');
+        }
+        if (filters.my_articles) {
+            urlParams.set('my_articles', 'true');
+        }
+        if (filters.categories && filters.categories.length > 0) {
+            filters.categories.forEach(cat => {
+                urlParams.append('categories', cat);
+            });
+        }
+        
+        window.location.search = urlParams.toString();
+    }
+    
+    // Clear saved filters from localStorage
+    function clearSavedFilters() {
+        localStorage.removeItem('newsFilters');
+        console.log('🗑️ Cleared saved filters from localStorage');
+    }
     
     // Handle "My Articles" checkbox change
     document.getElementById('myArticlesInput')?.addEventListener('change', function(e) {
@@ -752,14 +821,22 @@
             currentCategories.filter(c => c !== username).forEach(cat => {
                 urlParams.append('categories', cat);
             });
-            
-            // Add noclear to prevent auto-filter
-            urlParams.set('noclear', '1');
         }
         
         // Submit form to apply filter
         window.location.search = urlParams.toString();
     });
+    
+    // Handle form submit to save filters
+    document.getElementById('searchForm')?.addEventListener('submit', function(e) {
+        // Let form submit normally, filters will be saved on page load
+    });
+    
+    // Add Clear Filters button functionality  
+    function clearAllFilters() {
+        clearSavedFilters();
+        window.location.href = window.location.pathname;
+    }
     
     // Load user favorites and update heart icons
     async function loadUserFavorites(username) {
