@@ -596,4 +596,112 @@ MIT License - Free to use and modify
 
 ---
 
+## 🤖 Hướng Dẫn ChatGPT Post Bài Tự Động
+
+### Thông Tin API
+
+**API Endpoint**: `http://13.54.199.93:5000/api/import`  
+**Phương thức**: `POST`  
+**Authentication**: Không cần (Open API)  
+**Content-Type**: `application/json`
+
+### Format JSON Chuẩn
+
+**Đăng 1 bài viết:**
+```json
+{
+  "articles": [
+    {
+      "title_vi": "Tiêu đề bài viết tiếng Việt",
+      "title_en": "English Article Title",
+      "content_vi": "Nội dung đầy đủ bằng tiếng Việt...",
+      "content_en": "Full content in English...",
+      "category": "news"
+    }
+  ]
+}
+```
+
+**Đăng nhiều bài viết:**
+```json
+{
+  "articles": [
+    {
+      "title_vi": "Bài viết số 1",
+      "title_en": "Article 1",
+      "content_vi": "Nội dung 1...",
+      "content_en": "Content 1...",
+      "category": "technology"
+    },
+    {
+      "title_vi": "Bài viết số 2",
+      "title_en": "Article 2",
+      "content_vi": "Nội dung 2...",
+      "content_en": "Content 2...",
+      "category": "education"
+    }
+  ]
+}
+```
+
+### Categories Hợp Lệ
+
+- `news`, `technology`, `education`, `business`, `health`
+- `entertainment`, `sports`, `science`, `lifestyle`, `travel`
+- `food`, `book`, `movie`, `music`, `gaming`
+
+> **Lưu ý**: Nếu category chưa tồn tại, hệ thống sẽ tự động tạo mới.
+
+### Test API bằng cURL
+
+```bash
+curl -X POST http://13.54.199.93:5000/api/import \
+  -H "Content-Type: application/json" \
+  -d '{
+    "articles": [
+      {
+        "title_vi": "Test API Import",
+        "title_en": "Test API Import",
+        "content_vi": "Đây là bài test import qua API",
+        "content_en": "This is a test article via API",
+        "category": "technology"
+      }
+    ]
+  }'
+```
+
+### Response Format
+
+**Thành công:**
+```json
+{
+  "success": true,
+  "imported_count": 1,
+  "article_ids": [42],
+  "message": "Successfully imported 1 articles"
+}
+```
+
+**Lỗi:**
+```json
+{
+  "success": false,
+  "error": "No articles provided"
+}
+```
+
+### Prompt Template cho ChatGPT
+
+```
+Viết 1 bài về "[CHỦ ĐỀ]" bằng tiếng Việt và tiếng Anh, mỗi bên 500-800 từ.
+Sau đó POST lên: http://13.54.199.93:5000/api/import
+
+Yêu cầu:
+- Nội dung có cấu trúc rõ ràng với các đoạn văn
+- Tiêu đề hấp dẫn, súc tích
+- Category phù hợp với chủ đề
+```
+
+---
+
 **Enjoy reading! 📚✨**
